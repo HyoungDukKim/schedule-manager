@@ -1,0 +1,40 @@
+STEP32 프로젝트 리팩토링 완료
+
+1. 컴포넌트 폴더 분리
+- components/layout
+- components/schedule
+- components/calendar
+- components/statistics
+
+2. Custom Hook 분리
+- hooks/useSchedules.ts
+- hooks/useTheme.ts
+
+3. 공통 타입 분리
+- types/schedule.ts
+- types/ui.ts
+
+4. 상수 분리
+- constants/schedule.ts
+
+5. 유틸 함수 분리
+- utils/dateUtils.ts
+- utils/scheduleUtils.ts
+- utils/statisticsUtils.ts
+
+6. Main.tsx 역할 축소
+- 화면 상태와 컴포넌트 조합만 담당
+- 일정 저장/검색/수정/삭제 로직은 useSchedules로 이동
+- 테마 로직은 useTheme으로 이동
+
+7. 기존 기능 유지
+- LocalStorage
+- 검색
+- 날짜/시간/카테고리/우선순위/반복
+- 목록/달력/통계
+- 다크 모드
+- STEP31 반응형 CSS
+
+검증
+- 전체 TS/TSX 파일 TypeScript 구문 변환 검사 통과
+- 최종 실행은 npm install 후 npm run dev

@@ -1,0 +1,25 @@
+STEP31 반응형 수정 내역
+
+수정 파일
+1. src/App.tsx
+   - responsive-final.css를 가장 마지막에 불러오도록 추가
+
+2. src/components/CalendarView.tsx
+   - 달력 제목을 먼저 표시하고 이동 버튼을 다음에 표시하도록 구조 정리
+
+3. src/styles/responsive-final.css
+   - PC / 태블릿 / 모바일 최종 반응형 규칙 추가
+   - 모바일에서 사이드바를 상단 가로 메뉴로 변경
+   - 달력 7열의 최소 너비를 제거하여 화면 안에 맞춤
+   - 이전 달 / 오늘 / 다음 달 버튼을 3열 그리드로 배치
+   - 일정 목록과 통계 화면의 모바일 배치 정리
+
+삭제 파일
+- src/styles/mobile-calendar-fix.css
+  사용되지 않는 이전 임시 수정 파일이므로 삭제
+
+검증 결과
+- npm ci 성공
+- npm run build 성공
+- TypeScript 컴파일 성공
+- Vite production build 성공

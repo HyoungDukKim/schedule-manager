@@ -1,0 +1,62 @@
+.sidebar {
+  width: 240px;
+  background: #f8fafc;
+  border-right: 1px solid #ddd;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sidebar h2 {
+  margin-bottom: 30px;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-list li {
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-list li:hover {
+  background: #2563eb;
+  color: white;
+}
+
+/* ===============================
+   STEP31 모바일 사이드바
+================================ */
+
+@media (max-width: 768px) {
+
+  /* 좌우 배치를 세로로 변경 */
+  .container {
+    flex-direction: column;
+  }
+
+  /* 사이드바를 화면 전체 폭으로 */
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+  }
+
+  /* 메뉴를 가로 배치 */
+  .menu-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .menu-list li {
+    margin-bottom: 0;
+    padding: 10px 14px;
+  }
+}

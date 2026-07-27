@@ -1,0 +1,296 @@
+/* ==================================================
+   STEP31 반응형 레이아웃 최종 정리
+
+   이 파일은 App.tsx에서 가장 마지막에 불러옵니다.
+   기존 학습 단계에서 누적된 CSS보다 우선 적용되어
+   PC, 태블릿, 모바일 화면을 안정적으로 정리합니다.
+================================================== */
+
+/* 모든 주요 레이아웃 요소가 부모 너비를 넘지 않도록 합니다. */
+.container,
+.sidebar,
+.main,
+.main-header,
+.schedule-toolbar,
+.search-area,
+.view-toggle,
+.schedule-form,
+.schedule-list,
+.schedule-item,
+.calendar,
+.calendar-header,
+.calendar-navigation,
+.calendar-weekdays,
+.calendar-grid,
+.statistics-view,
+.statistics-summary,
+.statistics-charts {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* PC 기본 레이아웃입니다. */
+.container {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 130px);
+}
+
+.sidebar {
+  flex: 0 0 240px;
+  width: 240px;
+}
+
+.main {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* 달력은 부모 영역 너비를 정확히 사용합니다. */
+.calendar {
+  width: 100%;
+  overflow: hidden;
+}
+
+.calendar-header {
+  width: 100%;
+}
+
+.calendar-navigation {
+  flex-shrink: 0;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-weekday,
+.calendar-cell,
+.calendar-schedule,
+.calendar-schedule-title {
+  min-width: 0;
+}
+
+.calendar-schedule-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 태블릿 화면입니다. */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex: none;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid #ddd;
+    padding: 14px 18px;
+  }
+
+  .sidebar h2 {
+    margin: 0 0 12px;
+  }
+
+  .menu-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    scrollbar-width: thin;
+  }
+
+  .menu-list li {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 10px 13px;
+    white-space: nowrap;
+  }
+
+  .main {
+    width: 100%;
+    padding: 24px;
+  }
+
+  .calendar-header,
+  .calendar-weekdays,
+  .calendar-grid {
+    min-width: 0;
+  }
+}
+
+/* 작은 태블릿과 휴대전화 화면입니다. */
+@media (max-width: 700px) {
+  .main {
+    padding: 18px 14px;
+  }
+
+  .main-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .add-btn {
+    width: 100%;
+  }
+
+  .schedule-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .view-toggle {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .view-toggle button {
+    min-width: 0;
+    padding: 10px 5px;
+  }
+
+  .schedule-item {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .schedule-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .schedule-actions button {
+    width: 100%;
+  }
+
+  /* 제목을 위에, 이동 버튼을 아래에 표시합니다. */
+  .calendar-header {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .calendar-header h3 {
+    width: 100%;
+    margin: 0;
+    font-size: 19px;
+    text-align: center;
+  }
+
+  /* 이전 달 / 오늘 / 다음 달 버튼을 화면 너비 안에 배치합니다. */
+  .calendar-navigation {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 46px minmax(0, 1fr) 46px;
+    gap: 8px;
+  }
+
+  .calendar-navigation button,
+  .calendar-navigation .today-btn {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 40px;
+    padding: 0 4px;
+  }
+
+  /* 7개 요일을 모바일 화면 안에 모두 맞춥니다. */
+  .calendar-weekdays,
+  .calendar-grid {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .calendar-weekday {
+    min-width: 0;
+    padding: 9px 1px;
+    font-size: 11px;
+  }
+
+  .calendar-cell {
+    min-width: 0;
+    min-height: 78px;
+    padding: 4px 3px;
+  }
+
+  .calendar-date-header {
+    gap: 2px;
+  }
+
+  .calendar-date-number {
+    width: 21px;
+    height: 21px;
+    font-size: 10px;
+  }
+
+  .calendar-count {
+    min-width: 15px;
+    height: 15px;
+    padding: 0 2px;
+    font-size: 8px;
+  }
+
+  .calendar-schedules {
+    gap: 2px;
+  }
+
+  .calendar-schedule {
+    padding: 3px 2px;
+    font-size: 8px;
+  }
+
+  .calendar-schedule-time,
+  .calendar-repeat {
+    display: none;
+  }
+
+  .statistics-summary,
+  .statistics-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 폭이 매우 좁은 휴대전화 화면입니다. */
+@media (max-width: 390px) {
+  .main {
+    padding: 14px 10px;
+  }
+
+  .calendar-header {
+    padding: 12px 10px;
+  }
+
+  .calendar-navigation {
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    gap: 6px;
+  }
+
+  .calendar-cell {
+    min-height: 70px;
+    padding: 3px 2px;
+  }
+
+  .calendar-weekday {
+    font-size: 10px;
+  }
+}
