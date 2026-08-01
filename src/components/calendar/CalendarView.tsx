@@ -1,6 +1,6 @@
 // React의 State 기능을 가져옵니다.
 // 현재 달력에 표시할 연도와 월을 관리할 때 사용합니다.
-import { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 // 일정 데이터 타입을 가져옵니다.
 import type { Schedule } from "../../types/schedule";
@@ -11,7 +11,7 @@ type Props = {
   schedules: Schedule[];
 
   // 달력에서 일정을 눌렀을 때 수정폼을 여는 함수입니다.
-  onEdit: (id: number) => void;
+  onEdit: (id: string) => void;
 };
 
 import { WEEK_DAYS } from "../../constants/schedule";
@@ -23,7 +23,7 @@ function CalendarView({
   onEdit,
 }: Props) {
   // 오늘 날짜입니다.
-  const today = new Date();
+  const [today] = useState(() => new Date());
 
   // 달력에 표시할 연도와 월을 관리합니다.
   //
@@ -53,28 +53,14 @@ function CalendarView({
   // 월요일: 1
   // ...
   // 토요일: 6
-  const firstDayIndex = new Date(
-    currentYear,
-    currentMonthIndex,
-    1,
-  ).getDay();
-
-  // 현재 달의 마지막 날짜를 구합니다.
-  //
-  // 다음 달의 0일은 현재 달의 마지막 날입니다.
-  const lastDate = new Date(
-    currentYear,
-    currentMonthIndex + 1,
-    0,
-  ).getDate();
-
   // 달력은 최대 6주이므로 42칸을 만듭니다.
-  const calendarCells = Array.from(
-    { length: 42 },
-    (_, index) => {
+  const calendarCells = useMemo(() => {
+    const firstDayIndex = new Date(currentYear, currentMonthIndex, 1).getDay();
+    const lastDate = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+
+    return Array.from({ length: 42 }, (_, index) => {
       // 실제 날짜 숫자를 계산합니다.
-      const day =
-        index - firstDayIndex + 1;
+      const day = index - firstDayIndex + 1;
 
       // 현재 달에 포함되지 않는 칸은 null로 반환합니다.
       if (day < 1 || day > lastDate) {
@@ -82,33 +68,39 @@ function CalendarView({
       }
 
       return day;
-    },
-  );
+    });
+  }, [currentMonthIndex, currentYear]);
+
+  const schedulesByDate = useMemo(() => {
+    const result = new Map<string, Schedule[]>();
+
+    calendarCells.forEach((day) => {
+      if (day === null) return;
+
+      const targetDate = new Date(currentYear, currentMonthIndex, day);
+      const targetDateString = formatDate(currentYear, currentMonthIndex, day);
+      const dailySchedules = schedules
+        .filter((schedule) => isScheduleOnDate(schedule, targetDate))
+        .sort((first, second) => first.time.localeCompare(second.time));
+
+      result.set(targetDateString, dailySchedules);
+    });
+
+    return result;
+  }, [calendarCells, currentMonthIndex, currentYear, schedules]);
 
   // 이전 달로 이동합니다.
-  const moveToPreviousMonth = () => {
-    setCurrentMonth(
-      new Date(
-        currentYear,
-        currentMonthIndex - 1,
-        1,
-      ),
-    );
-  };
+  const moveToPreviousMonth = useCallback(() => {
+    setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1));
+  }, []);
 
   // 다음 달로 이동합니다.
-  const moveToNextMonth = () => {
-    setCurrentMonth(
-      new Date(
-        currentYear,
-        currentMonthIndex + 1,
-        1,
-      ),
-    );
-  };
+  const moveToNextMonth = useCallback(() => {
+    setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1));
+  }, []);
 
   // 오늘이 포함된 달로 이동합니다.
-  const moveToToday = () => {
+  const moveToToday = useCallback(() => {
     setCurrentMonth(
       new Date(
         today.getFullYear(),
@@ -116,7 +108,7 @@ function CalendarView({
         1,
       ),
     );
-  };
+  }, [today]);
 
   return (
     <section className="calendar">
@@ -183,12 +175,6 @@ function CalendarView({
             }
 
             // 현재 달력 칸의 Date 객체입니다.
-            const targetDate = new Date(
-              currentYear,
-              currentMonthIndex,
-              day,
-            );
-
             // 현재 날짜의 YYYY-MM-DD 문자열입니다.
             const targetDateString =
               formatDate(
@@ -207,19 +193,7 @@ function CalendarView({
               );
 
             // 해당 날짜에 표시할 일정을 찾습니다.
-            const dailySchedules =
-              schedules
-                .filter((schedule) =>
-                  isScheduleOnDate(
-                    schedule,
-                    targetDate,
-                  ),
-                )
-                .sort((first, second) =>
-                  first.time.localeCompare(
-                    second.time,
-                  ),
-                );
+            const dailySchedules = schedulesByDate.get(targetDateString) ?? [];
 
             return (
               <div
@@ -293,4 +267,4 @@ function CalendarView({
   );
 }
 
-export default CalendarView;
+export default memo(CalendarView);

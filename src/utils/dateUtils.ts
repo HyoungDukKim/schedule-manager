@@ -21,7 +21,7 @@ export const parseDate = (dateString: string) => {
 // 두 날짜 사이의 날짜 차이를 계산합니다.
 export const getDateDifference = (startDate: Date, targetDate: Date) => {
   const oneDay = 1000 * 60 * 60 * 24;
-  const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-  return Math.floor((target.getTime() - start.getTime()) / oneDay);
+  const start = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const target = Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  return Math.floor((target - start) / oneDay);
 };

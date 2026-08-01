@@ -1,3 +1,4 @@
+import { memo } from "react";
 // 일정 데이터 타입을 가져옵니다.
 import type { Schedule } from "../../types/schedule";
 
@@ -10,13 +11,13 @@ type Props = {
   schedules: Schedule[];
 
   // 완료 상태 변경 함수입니다.
-  onToggle: (id: number) => void;
+  onToggle: (id: string) => void;
 
   // 수정폼 열기 함수입니다.
-  onEdit: (id: number) => void;
+  onEdit: (id: string) => void;
 
   // 일정 삭제 함수입니다.
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 };
 
 function ScheduleList({
@@ -31,14 +32,7 @@ function ScheduleList({
       {schedules.map((schedule) => (
         <ScheduleItem
           key={schedule.id}
-          id={schedule.id}
-          title={schedule.title}
-          date={schedule.date}
-          time={schedule.time}
-          category={schedule.category}
-          priority={schedule.priority}
-          repeat={schedule.repeat}
-          completed={schedule.completed}
+          schedule={schedule}
           onToggle={onToggle}
           onEdit={onEdit}
           onDelete={onDelete}
@@ -48,4 +42,4 @@ function ScheduleList({
   );
 }
 
-export default ScheduleList;
+export default memo(ScheduleList);

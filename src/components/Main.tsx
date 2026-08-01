@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import "../styles/main.css";
 
 import CalendarView from "./calendar/CalendarView";
@@ -14,10 +14,15 @@ import {
 } from "../constants/schedule";
 import { useSchedules } from "../hooks/useSchedules";
 import { useTheme } from "../hooks/useTheme";
+import type { ScheduleFormValues } from "../types/schedule";
 import type { ViewMode } from "../types/ui";
 import { getToday } from "../utils/dateUtils";
 
-function Main() {
+type Props = {
+  userId: string;
+};
+
+function Main({ userId }: Props) {
   // 화면 표시 상태는 Main이 담당합니다.
   const [showForm, setShowForm] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -28,31 +33,35 @@ function Main() {
   const {
     filteredSchedules,
     editingSchedule,
-    setEditingSchedule,
     openEditSchedule,
     saveSchedule,
     cancelEditing,
     toggleSchedule,
     deleteSchedule,
-  } = useSchedules(searchText);
+  } = useSchedules(userId, searchText);
 
   const normalizedSearchText = searchText.trim();
 
-  const openAddForm = () => {
-    setEditingSchedule(null);
+  const openAddForm = useCallback(() => {
+    cancelEditing();
     setShowForm(true);
-  };
+  }, [cancelEditing]);
 
-  const openEditForm = (id: number) => {
+  const openEditForm = useCallback((id: string) => {
     openEditSchedule(id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, [openEditSchedule]);
 
-  const cancelForm = () => {
+  const cancelForm = useCallback(() => {
     setShowForm(false);
     cancelEditing();
-  };
+  }, [cancelEditing]);
+
+  const handleSave = useCallback(async (values: ScheduleFormValues) => {
+    const saved = await saveSchedule(values);
+    if (saved) setShowForm(false);
+  }, [saveSchedule]);
 
   return (
     <main className="main">
@@ -124,10 +133,7 @@ function Main() {
 
       {showForm && (
         <ScheduleForm
-          onSave={(title, date, time, category, priority, repeat) => {
-            saveSchedule({ title, date, time, category, priority, repeat });
-            setShowForm(false);
-          }}
+          onSave={handleSave}
           onCancel={cancelForm}
           initialTitle={editingSchedule?.title ?? ""}
           initialDate={editingSchedule?.date ?? getToday()}

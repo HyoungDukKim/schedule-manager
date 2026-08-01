@@ -2,6 +2,8 @@ import Header from "./components/layout/Header";
 import Sidebar from "./components/layout/Sidebar";
 import Main from "./components/Main";
 import Footer from "./components/layout/Footer";
+import LoginView from "./components/auth/LoginView";
+import { useAuth } from "./hooks/useAuth";
 
 import "./styles/layout.css";
 
@@ -10,13 +12,23 @@ import "./styles/layout.css";
 import "./styles/responsive-final.css";
 
 function App() {
+  const { user, isAuthLoading, authError, login, logout } = useAuth();
+
+  if (isAuthLoading) {
+    return <LoginView error={null} onLogin={() => undefined} isLoading />;
+  }
+
+  if (!user) {
+    return <LoginView error={authError} onLogin={login} />;
+  }
+
   return (
     <>
-      <Header />
+      <Header user={user} onLogout={logout} />
 
       <div className="container">
         <Sidebar />
-        <Main />
+        <Main userId={user.uid} />
       </div>
 
       <Footer />

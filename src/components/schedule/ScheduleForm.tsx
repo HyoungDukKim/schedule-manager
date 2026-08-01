@@ -1,5 +1,5 @@
 // 입력값을 관리하기 위해 useState를 가져옵니다.
-import { useState } from "react";
+import { memo, useState } from "react";
 
 // form 제출 이벤트의 TypeScript 타입입니다.
 import type { FormEvent } from "react";
@@ -7,21 +7,20 @@ import type { FormEvent } from "react";
 // 카테고리, 우선순위, 반복 타입을 가져옵니다.
 import type {
   ScheduleCategory,
+  ScheduleFormValues,
   SchedulePriority,
   ScheduleRepeat,
 } from "../../types/schedule";
+import {
+  SCHEDULE_CATEGORIES,
+  SCHEDULE_PRIORITIES,
+  SCHEDULE_REPEATS,
+} from "../../constants/schedule";
 
 // Main 컴포넌트로부터 받는 값들의 타입입니다.
 type Props = {
   // 입력한 일정 정보를 Main으로 전달합니다.
-  onSave: (
-    title: string,
-    date: string,
-    time: string,
-    category: ScheduleCategory,
-    priority: SchedulePriority,
-    repeat: ScheduleRepeat,
-  ) => void;
+  onSave: (values: ScheduleFormValues) => void | Promise<void>;
 
   // 입력폼을 닫는 함수입니다.
   onCancel: () => void;
@@ -80,7 +79,7 @@ function ScheduleForm({
     );
 
   // 저장 버튼을 눌렀을 때 실행합니다.
-  const handleSubmit = (
+  const handleSubmit = async (
     event: FormEvent<HTMLFormElement>,
   ) => {
     // form 제출로 인한 새로고침을 막습니다.
@@ -99,14 +98,14 @@ function ScheduleForm({
     }
 
     // 모든 입력값을 Main 컴포넌트로 전달합니다.
-    onSave(
-      trimmedTitle,
+    await onSave({
+      title: trimmedTitle,
       date,
       time,
       category,
       priority,
       repeat,
-    );
+    });
   };
 
   return (
@@ -187,25 +186,11 @@ function ScheduleForm({
             )
           }
         >
-          <option value="업무">
-            업무
-          </option>
-
-          <option value="개인">
-            개인
-          </option>
-
-          <option value="운동">
-            운동
-          </option>
-
-          <option value="공부">
-            공부
-          </option>
-
-          <option value="기타">
-            기타
-          </option>
+          {SCHEDULE_CATEGORIES.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -225,17 +210,11 @@ function ScheduleForm({
             )
           }
         >
-          <option value="높음">
-            높음
-          </option>
-
-          <option value="보통">
-            보통
-          </option>
-
-          <option value="낮음">
-            낮음
-          </option>
+          {SCHEDULE_PRIORITIES.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -255,21 +234,11 @@ function ScheduleForm({
             )
           }
         >
-          <option value="반복 안함">
-            반복 안함
-          </option>
-
-          <option value="매일">
-            매일
-          </option>
-
-          <option value="매주">
-            매주
-          </option>
-
-          <option value="매월">
-            매월
-          </option>
+          {SCHEDULE_REPEATS.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -292,4 +261,4 @@ function ScheduleForm({
   );
 }
 
-export default ScheduleForm;
+export default memo(ScheduleForm);

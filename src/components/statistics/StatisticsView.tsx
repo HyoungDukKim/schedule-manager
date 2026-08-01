@@ -1,3 +1,4 @@
+import { memo } from "react";
 // 일정 데이터 타입을 가져옵니다.
 import type { Schedule } from "../../types/schedule";
 import {
@@ -23,6 +24,8 @@ function StatisticsView({
     urgentCount,
     completionRate,
     completionDegree,
+    categoryCounts,
+    priorityStatistics,
   } = getScheduleStatistics(schedules);
 
   return (
@@ -188,12 +191,7 @@ function StatisticsView({
           <div className="statistics-bars">
             {CATEGORIES.map((category) => {
               // 현재 카테고리에 해당하는 일정 개수를 계산합니다.
-              const categoryCount =
-                schedules.filter(
-                  (schedule) =>
-                    schedule.category ===
-                    category,
-                ).length;
+              const categoryCount = categoryCounts[category];
 
               // 전체 일정 중 카테고리가 차지하는 비율입니다.
               const categoryRate =
@@ -254,21 +252,11 @@ function StatisticsView({
           <div className="priority-statistics">
             {PRIORITIES.map((priority) => {
               // 해당 우선순위의 전체 일정 개수입니다.
-              const priorityCount =
-                schedules.filter(
-                  (schedule) =>
-                    schedule.priority ===
-                    priority,
-                ).length;
+              const priorityCount = priorityStatistics[priority].totalCount;
 
               // 해당 우선순위 중 완료된 일정 개수입니다.
               const completedPriorityCount =
-                schedules.filter(
-                  (schedule) =>
-                    schedule.priority ===
-                      priority &&
-                    schedule.completed,
-                ).length;
+                priorityStatistics[priority].completedCount;
 
               return (
                 <div
@@ -304,4 +292,4 @@ function StatisticsView({
   );
 }
 
-export default StatisticsView;
+export default memo(StatisticsView);

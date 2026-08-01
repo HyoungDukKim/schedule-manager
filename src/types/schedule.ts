@@ -21,8 +21,8 @@ export type ScheduleRepeat =
 
 // 일정 한 개의 전체 데이터 구조입니다.
 export interface Schedule {
-  // 일정을 구분하는 고유 번호입니다.
-  id: number;
+  // Firestore 문서 ID입니다.
+  id: string;
 
   // 일정 제목입니다.
   title: string;
@@ -47,3 +47,7 @@ export interface Schedule {
   // 일정 반복 규칙입니다.
   repeat: ScheduleRepeat;
 }
+
+export type ScheduleData = Omit<Schedule, "id">;
+
+export type ScheduleFormValues = Omit<ScheduleData, "completed">;

@@ -1,76 +1,108 @@
-import { useEffect, useMemo, useState } from "react";
-import { STORAGE_KEY } from "../constants/schedule";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   Schedule,
-  ScheduleCategory,
-  SchedulePriority,
-  ScheduleRepeat,
+  ScheduleFormValues,
 } from "../types/schedule";
-import { filterSchedules, loadSchedules } from "../utils/scheduleUtils";
+import {
+  addSchedule,
+  deleteSchedule as deleteScheduleFromFirestore,
+  getSchedules,
+  updateSchedule,
+} from "../services/scheduleService";
+import { filterSchedules } from "../utils/scheduleUtils";
 
-export type ScheduleFormValues = {
-  title: string;
-  date: string;
-  time: string;
-  category: ScheduleCategory;
-  priority: SchedulePriority;
-  repeat: ScheduleRepeat;
-};
-
-export const useSchedules = (searchText: string) => {
-  const [schedules, setSchedules] = useState<Schedule[]>(loadSchedules);
+export const useSchedules = (userId: string, searchText: string) => {
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const schedulesRef = useRef(schedules);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+    schedulesRef.current = schedules;
   }, [schedules]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchSchedules = async () => {
+      try {
+        const loadedSchedules = await getSchedules(userId);
+        if (isActive) setSchedules(loadedSchedules);
+      } catch (error) {
+        console.error("Firestore에서 일정 데이터를 불러오지 못했습니다.", error);
+      }
+    };
+
+    void fetchSchedules();
+
+    return () => {
+      isActive = false;
+    };
+  }, [userId]);
 
   const filteredSchedules = useMemo(
     () => filterSchedules(schedules, searchText),
     [schedules, searchText],
   );
 
-  const openEditSchedule = (id: number) => {
-    const selectedSchedule = schedules.find((schedule) => schedule.id === id);
+  const openEditSchedule = useCallback((id: string) => {
+    const selectedSchedule = schedulesRef.current.find((schedule) => schedule.id === id);
     if (selectedSchedule) setEditingSchedule(selectedSchedule);
-  };
+  }, []);
 
-  const saveSchedule = (values: ScheduleFormValues) => {
-    if (editingSchedule) {
+  const saveSchedule = useCallback(async (values: ScheduleFormValues) => {
+    try {
+      if (editingSchedule) {
+        await updateSchedule(userId, editingSchedule.id, values);
+        setSchedules((previous) =>
+          previous.map((schedule) =>
+            schedule.id === editingSchedule.id ? { ...schedule, ...values } : schedule,
+          ),
+        );
+      } else {
+        const scheduleData = { completed: false, ...values };
+        const id = await addSchedule(userId, scheduleData);
+        setSchedules((previous) => [...previous, { id, ...scheduleData }]);
+      }
+      setEditingSchedule(null);
+      return true;
+    } catch (error) {
+      console.error("Firestore에 일정을 저장하지 못했습니다.", error);
+      return false;
+    }
+  }, [editingSchedule, userId]);
+
+  const cancelEditing = useCallback(() => setEditingSchedule(null), []);
+
+  const toggleSchedule = useCallback(async (id: string) => {
+    const selectedSchedule = schedulesRef.current.find((schedule) => schedule.id === id);
+    if (!selectedSchedule) return;
+
+    try {
+      const completed = !selectedSchedule.completed;
+      await updateSchedule(userId, id, { completed });
       setSchedules((previous) =>
         previous.map((schedule) =>
-          schedule.id === editingSchedule.id ? { ...schedule, ...values } : schedule,
+          schedule.id === id ? { ...schedule, completed } : schedule,
         ),
       );
-    } else {
-      setSchedules((previous) => [
-        ...previous,
-        { id: Date.now(), completed: false, ...values },
-      ]);
+    } catch (error) {
+      console.error("Firestore에서 일정 완료 상태를 변경하지 못했습니다.", error);
     }
-    setEditingSchedule(null);
-  };
+  }, [userId]);
 
-  const cancelEditing = () => setEditingSchedule(null);
-
-  const toggleSchedule = (id: number) => {
-    setSchedules((previous) =>
-      previous.map((schedule) =>
-        schedule.id === id ? { ...schedule, completed: !schedule.completed } : schedule,
-      ),
-    );
-  };
-
-  const deleteSchedule = (id: number) => {
-    setSchedules((previous) => previous.filter((schedule) => schedule.id !== id));
-    if (editingSchedule?.id === id) setEditingSchedule(null);
-  };
+  const deleteSchedule = useCallback(async (id: string) => {
+    try {
+      await deleteScheduleFromFirestore(userId, id);
+      setSchedules((previous) => previous.filter((schedule) => schedule.id !== id));
+      if (editingSchedule?.id === id) setEditingSchedule(null);
+    } catch (error) {
+      console.error("Firestore에서 일정을 삭제하지 못했습니다.", error);
+    }
+  }, [editingSchedule, userId]);
 
   return {
-    schedules,
     filteredSchedules,
     editingSchedule,
-    setEditingSchedule,
     openEditSchedule,
     saveSchedule,
     cancelEditing,

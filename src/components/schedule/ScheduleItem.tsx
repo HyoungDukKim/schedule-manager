@@ -1,37 +1,17 @@
-// 카테고리, 우선순위, 반복 타입을 가져옵니다.
-import type {
-  ScheduleCategory,
-  SchedulePriority,
-  ScheduleRepeat,
-} from "../../types/schedule";
+import { memo } from "react";
+import type { Schedule } from "../../types/schedule";
 
 // ScheduleList로부터 받는 Props 타입입니다.
 type Props = {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
+  schedule: Schedule;
 
-  category: ScheduleCategory;
-  priority: SchedulePriority;
-  repeat: ScheduleRepeat;
-
-  completed: boolean;
-
-  onToggle: (id: number) => void;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onToggle: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 };
 
 function ScheduleItem({
-  id,
-  title,
-  date,
-  time,
-  category,
-  priority,
-  repeat,
-  completed,
+  schedule: { id, title, date, time, category, priority, repeat, completed },
   onToggle,
   onEdit,
   onDelete,
@@ -116,4 +96,4 @@ function ScheduleItem({
   );
 }
 
-export default ScheduleItem;
+export default memo(ScheduleItem);

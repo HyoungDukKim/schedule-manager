@@ -31,3 +31,38 @@
 
   cursor: pointer;
 }
+
+.menu span {
+  align-self: center;
+  font-size: 14px;
+}
+
+.logout-btn {
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .header {
+    padding: 0 14px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .menu {
+    gap: 8px;
+  }
+
+  .menu > span:first-child,
+  .menu > span:nth-child(2),
+  .menu > span:nth-child(3) {
+    display: none;
+  }
+}

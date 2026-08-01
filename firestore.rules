@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticatedOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function hasValidScheduleFields(data) {
+      let fields = [
+        'title',
+        'completed',
+        'date',
+        'time',
+        'category',
+        'priority',
+        'repeat'
+      ];
+
+      return data.keys().hasAll(fields)
+        && data.keys().hasOnly(fields)
+        && data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 200
+        && data.completed is bool
+        && data.date is string
+        && data.date.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
+        && data.time is string
+        && data.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+        && data.category in ['업무', '개인', '운동', '공부', '기타']
+        && data.priority in ['높음', '보통', '낮음']
+        && data.repeat in ['반복 안함', '매일', '매주', '매월'];
+    }
+
+    match /users/{userId} {
+      match /schedules/{scheduleId} {
+        allow get, list: if isAuthenticatedOwner(userId);
+
+        allow create, update: if isAuthenticatedOwner(userId)
+          && hasValidScheduleFields(request.resource.data);
+
+        allow delete: if isAuthenticatedOwner(userId);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
