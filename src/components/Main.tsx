@@ -18,6 +18,7 @@ import type { ScheduleFormValues } from "../types/schedule";
 import type { ViewMode } from "../types/ui";
 import { getToday } from "../utils/dateUtils";
 
+// 로그인 사용자의 일정만 조회하기 위해 사용자 ID를 전달받습니다.
 type Props = {
   userId: string;
 };
@@ -40,6 +41,7 @@ function Main({ userId }: Props) {
     deleteSchedule,
   } = useSchedules(userId, searchText);
 
+  // 검색어 앞뒤 공백을 제거하여 검색 결과 문구 표시 여부를 판단합니다.
   const normalizedSearchText = searchText.trim();
 
   const openAddForm = useCallback(() => {
@@ -93,10 +95,11 @@ function Main({ userId }: Props) {
       <div className="schedule-toolbar">
         <div className="search-area">
           <label htmlFor="schedule-search">일정 검색</label>
+          {/* 입력값이 바뀔 때마다 State가 갱신되어 제목 검색 결과가 즉시 반영됩니다. */}
           <input
             id="schedule-search"
             type="search"
-            placeholder="제목 또는 카테고리를 검색하세요."
+            placeholder="일정 제목을 검색하세요."
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
           />
