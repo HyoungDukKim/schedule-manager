@@ -1,3 +1,4 @@
+/* 앱 상단 Header의 기본 배치와 색상입니다. */
 .header {
   height: 70px;
 
@@ -16,12 +17,14 @@
   box-sizing: border-box;
 }
 
+/* 일정관리 앱 로고입니다. */
 .logo {
   font-size: 24px;
 
   font-weight: bold;
 }
 
+/* Header 오른쪽의 아이콘과 사용자 메뉴를 가로로 배치합니다. */
 .menu {
   display: flex;
 
@@ -29,24 +32,117 @@
 
   font-size: 22px;
 
-  cursor: pointer;
 }
 
+/* 기존 검색과 설정 아이콘을 세로 가운데에 맞춥니다. */
 .menu span {
   align-self: center;
   font-size: 14px;
 }
 
-.logout-btn {
-  border: 1px solid rgb(255 255 255 / 65%);
-  border-radius: 8px;
-  padding: 8px 12px;
+/* 드롭다운의 기준 위치가 되는 사용자 메뉴 영역입니다. */
+.header-user-menu {
+  position: relative;
+}
+
+/* 사진, 이름, 화살표가 들어가는 사용자 메뉴 버튼입니다. */
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 280px;
+  min-height: 42px;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 999px;
   background: transparent;
   color: #fff;
   cursor: pointer;
-  font-weight: 700;
 }
 
+/* 프로필 사진과 사진이 없을 때의 기본 아이콘 크기를 통일합니다. */
+.user-profile-image,
+.user-profile-fallback {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.user-profile-image {
+  display: block;
+  object-fit: cover;
+}
+
+.user-profile-fallback {
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 20%);
+  font-size: 16px;
+}
+
+/* 이름이나 이메일이 너무 길면 한 줄 말줄임표로 표시합니다. */
+.user-menu-label {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-arrow {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+/* 계정 변경과 로그아웃 메뉴가 표시되는 드롭다운입니다. */
+.user-menu-dropdown {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: 150px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgb(15 23 42 / 18%);
+}
+
+/* 드롭다운 안의 계정 변경 및 로그아웃 버튼입니다. */
+.user-menu-dropdown button {
+  padding: 11px 14px;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+}
+
+.user-menu-dropdown button:hover,
+.user-menu-dropdown button:focus-visible {
+  outline: none;
+  background: #f1f5f9;
+}
+
+/* 다크 모드에서는 드롭다운 색상을 어두운 화면에 맞춥니다. */
+:root[data-theme="dark"] .user-menu-dropdown {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .user-menu-dropdown button {
+  color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .user-menu-dropdown button:hover,
+:root[data-theme="dark"] .user-menu-dropdown button:focus-visible {
+  background: #334155;
+}
+
+/* 모바일 화면에서는 Header 공간에 맞게 요소를 간소화합니다. */
 @media (max-width: 700px) {
   .header {
     padding: 0 14px;
@@ -61,8 +157,22 @@
   }
 
   .menu > span:first-child,
-  .menu > span:nth-child(2),
-  .menu > span:nth-child(3) {
+  .menu > span:nth-child(2) {
     display: none;
+  }
+
+  .user-menu-trigger {
+    max-width: 180px;
+  }
+}
+
+/* 매우 좁은 화면에서는 사용자 이름을 숨기고 프로필 사진만 표시합니다. */
+@media (max-width: 480px) {
+  .user-menu-label {
+    display: none;
+  }
+
+  .user-menu-trigger {
+    padding-right: 8px;
   }
 }
