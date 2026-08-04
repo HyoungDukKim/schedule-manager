@@ -4,6 +4,7 @@ import type {
   SchedulePriority,
   ScheduleRepeat,
 } from "../types/schedule";
+import type { ScheduleCategoryFilter } from "../types/ui";
 import {
   SCHEDULE_CATEGORIES,
   SCHEDULE_PRIORITIES,
@@ -25,16 +26,25 @@ export const isScheduleRepeat = (value: unknown): value is ScheduleRepeat =>
 
 // 검색어를 정규화한 뒤 일정 제목에 포함되는 항목만 반환합니다.
 // 소문자로 변환해 영문 제목 검색 시 대소문자를 구분하지 않습니다.
-export const filterSchedules = (schedules: Schedule[], searchText: string) => {
+export const filterSchedules = (
+  schedules: Schedule[],
+  searchText: string,
+  categoryFilter: ScheduleCategoryFilter,
+) => {
   const normalized = searchText.trim().toLowerCase();
 
-  // 검색어가 비어 있으면 전체 일정을 그대로 반환합니다.
-  if (!normalized) return schedules;
+  // 제목 검색 조건과 카테고리 조건을 모두 만족하는 일정만 반환합니다.
+  return schedules.filter((schedule) => {
+    // 검색어가 없으면 모든 제목이 검색 조건을 만족합니다.
+    const matchesTitle =
+      !normalized || schedule.title.toLowerCase().includes(normalized);
 
-  // 일정 제목을 소문자로 변환한 뒤 정규화된 검색어와 비교합니다.
-  return schedules.filter((schedule) =>
-    schedule.title.toLowerCase().includes(normalized),
-  );
+    // "전체"를 선택하면 모든 카테고리가 필터 조건을 만족합니다.
+    const matchesCategory =
+      categoryFilter === "전체" || schedule.category === categoryFilter;
+
+    return matchesTitle && matchesCategory;
+  });
 };
 
 // 지정한 날짜에 단일 또는 반복 일정이 표시되어야 하는지 확인합니다.

@@ -11,11 +11,12 @@ import {
   getDefaultPriority,
   getDefaultRepeat,
   getDefaultTime,
+  SCHEDULE_FILTER_CATEGORIES,
 } from "../constants/schedule";
 import { useSchedules } from "../hooks/useSchedules";
 import { useTheme } from "../hooks/useTheme";
 import type { ScheduleFormValues } from "../types/schedule";
-import type { ViewMode } from "../types/ui";
+import type { ScheduleCategoryFilter, ViewMode } from "../types/ui";
 import { getToday } from "../utils/dateUtils";
 
 // 로그인 사용자의 일정만 조회하기 위해 사용자 ID를 전달받습니다.
@@ -27,6 +28,9 @@ function Main({ userId }: Props) {
   // 화면 표시 상태는 Main이 담당합니다.
   const [showForm, setShowForm] = useState(false);
   const [searchText, setSearchText] = useState("");
+  // 처음에는 모든 카테고리의 일정을 표시합니다.
+  const [categoryFilter, setCategoryFilter] =
+    useState<ScheduleCategoryFilter>("전체");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   // 테마와 일정 데이터 로직은 Custom Hook으로 분리했습니다.
@@ -39,7 +43,7 @@ function Main({ userId }: Props) {
     cancelEditing,
     toggleSchedule,
     deleteSchedule,
-  } = useSchedules(userId, searchText);
+  } = useSchedules(userId, searchText, categoryFilter);
 
   // 검색어 앞뒤 공백을 제거하여 검색 결과 문구 표시 여부를 판단합니다.
   const normalizedSearchText = searchText.trim();
@@ -131,6 +135,25 @@ function Main({ userId }: Props) {
           >
             ▥ 통계
           </button>
+        </div>
+      </div>
+
+      {/* 선택한 카테고리는 제목 검색 조건과 함께 적용됩니다. */}
+      <div className="category-filter" aria-label="일정 카테고리 필터">
+        <span className="category-filter-label">카테고리</span>
+
+        <div className="category-filter-buttons">
+          {SCHEDULE_FILTER_CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={categoryFilter === category ? "active" : ""}
+              onClick={() => setCategoryFilter(category)}
+              aria-pressed={categoryFilter === category}
+            >
+              {category}
+            </button>
+          ))}
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import type {
   Schedule,
   ScheduleFormValues,
 } from "../types/schedule";
+import type { ScheduleCategoryFilter } from "../types/ui";
 import {
   addSchedule,
   deleteSchedule as deleteScheduleFromFirestore,
@@ -11,7 +12,11 @@ import {
 } from "../services/scheduleService";
 import { filterSchedules } from "../utils/scheduleUtils";
 
-export const useSchedules = (userId: string, searchText: string) => {
+export const useSchedules = (
+  userId: string,
+  searchText: string,
+  categoryFilter: ScheduleCategoryFilter,
+) => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const schedulesRef = useRef(schedules);
@@ -40,8 +45,9 @@ export const useSchedules = (userId: string, searchText: string) => {
   }, [userId]);
 
   const filteredSchedules = useMemo(
-    () => filterSchedules(schedules, searchText),
-    [schedules, searchText],
+    // 검색어와 선택한 카테고리를 동시에 적용한 결과를 계산합니다.
+    () => filterSchedules(schedules, searchText, categoryFilter),
+    [categoryFilter, schedules, searchText],
   );
 
   const openEditSchedule = useCallback((id: string) => {
