@@ -122,6 +122,9 @@
   align-items: stretch;
   gap: 14px;
   margin-top: 14px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* 제목 검색과 함께 사용하는 카테고리 필터 영역입니다. */
@@ -180,6 +183,8 @@
 .schedule-sort {
   display: flex;
   min-width: 220px;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 12px 14px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -198,6 +203,8 @@
 /* 기존 입력 요소와 어울리도록 정렬 선택 상자의 모양을 맞춥니다. */
 .schedule-sort select {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 38px;
   padding: 8px 10px;
   border: 1px solid #cbd5e1;

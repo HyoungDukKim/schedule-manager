@@ -49,12 +49,15 @@ export const useSchedules = (
   }, [userId]);
 
   const filteredSchedules = useMemo(
-    // 검색과 카테고리 필터를 먼저 적용한 뒤 그 결과를 선택한 방식으로 정렬합니다.
-    () => {
-      const filtered = filterSchedules(schedules, searchText, categoryFilter);
-      return sortSchedules(filtered, sortOption);
-    },
-    [categoryFilter, schedules, searchText, sortOption],
+    // Firestore 원본 일정에 검색을 적용한 뒤 카테고리로 한 번 더 걸러냅니다.
+    () => filterSchedules(schedules, searchText, categoryFilter),
+    [categoryFilter, schedules, searchText],
+  );
+
+  // 필터 결과의 복사본만 정렬하여 원본 일정과 통계 계산 순서를 보호합니다.
+  const sortedSchedules = useMemo(
+    () => sortSchedules(filteredSchedules, sortOption),
+    [filteredSchedules, sortOption],
   );
 
   const openEditSchedule = useCallback((id: string) => {
@@ -115,6 +118,7 @@ export const useSchedules = (
 
   return {
     filteredSchedules,
+    sortedSchedules,
     editingSchedule,
     openEditSchedule,
     saveSchedule,

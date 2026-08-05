@@ -28,9 +28,9 @@ export const SCHEDULE_FILTER_CATEGORIES = [
 export const SCHEDULE_SORT_OPTIONS = [
   "날짜 빠른순",
   "날짜 늦은순",
-  "시간순",
-  "우선순위순",
-  "완료되지 않은 일정 우선",
+  "시간 빠른순",
+  "우선순위 높은순",
+  "미완료 일정 우선",
 ] as const satisfies readonly ScheduleSortOption[];
 
 export const SCHEDULE_PRIORITIES = [

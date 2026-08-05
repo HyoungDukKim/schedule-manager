@@ -45,6 +45,7 @@ function Main({ userId }: Props) {
   const { theme, toggleTheme } = useTheme();
   const {
     filteredSchedules,
+    sortedSchedules,
     editingSchedule,
     openEditSchedule,
     saveSchedule,
@@ -205,8 +206,9 @@ function Main({ userId }: Props) {
       ) : filteredSchedules.length === 0 ? (
         <div className="search-empty">검색 조건에 맞는 일정이 없습니다.</div>
       ) : viewMode === "list" ? (
+        // 목록 보기에서만 사용자가 선택한 정렬 순서를 적용합니다.
         <ScheduleList
-          schedules={filteredSchedules}
+          schedules={sortedSchedules}
           onToggle={toggleSchedule}
           onEdit={openEditForm}
           onDelete={deleteSchedule}

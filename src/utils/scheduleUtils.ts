@@ -61,6 +61,10 @@ const PRIORITY_ORDER: Record<SchedulePriority, number> = {
 const compareTitles = (first: Schedule, second: Schedule) =>
   first.title.localeCompare(second.title, "ko");
 
+// 날짜를 먼저 비교하고, 날짜가 같으면 더 빠른 시간을 앞에 배치합니다.
+const compareDateTimeAscending = (first: Schedule, second: Schedule) =>
+  first.date.localeCompare(second.date) || first.time.localeCompare(second.time);
+
 // 검색과 카테고리 필터가 끝난 배열의 복사본을 선택한 방식으로 정렬합니다.
 export const sortSchedules = (
   schedules: Schedule[],
@@ -70,19 +74,20 @@ export const sortSchedules = (
   const copiedSchedules = [...schedules];
 
   return copiedSchedules.sort((first, second) => {
-    // 날짜와 시간을 합친 문자열은 YYYY-MM-DD HH:mm 형식이라 문자열 비교가 가능합니다.
-    const firstDateTime = `${first.date} ${first.time}`;
-    const secondDateTime = `${second.date} ${second.time}`;
-
     if (sortOption === "날짜 빠른순") {
-      return firstDateTime.localeCompare(secondDateTime) || compareTitles(first, second);
+      return compareDateTimeAscending(first, second) || compareTitles(first, second);
     }
 
     if (sortOption === "날짜 늦은순") {
-      return secondDateTime.localeCompare(firstDateTime) || compareTitles(first, second);
+      // 날짜는 늦은 날짜부터 보여주되, 같은 날짜 안에서는 빠른 시간이 먼저입니다.
+      return (
+        second.date.localeCompare(first.date) ||
+        first.time.localeCompare(second.time) ||
+        compareTitles(first, second)
+      );
     }
 
-    if (sortOption === "시간순") {
+    if (sortOption === "시간 빠른순") {
       return (
         first.time.localeCompare(second.time) ||
         first.date.localeCompare(second.date) ||
@@ -90,18 +95,18 @@ export const sortSchedules = (
       );
     }
 
-    if (sortOption === "우선순위순") {
+    if (sortOption === "우선순위 높은순") {
       return (
         PRIORITY_ORDER[first.priority] - PRIORITY_ORDER[second.priority] ||
-        firstDateTime.localeCompare(secondDateTime) ||
+        compareDateTimeAscending(first, second) ||
         compareTitles(first, second)
       );
     }
 
-    // 완료 여부를 숫자로 바꾸면 미완료(false)가 완료(true)보다 먼저 배치됩니다.
+    // 남은 옵션인 "미완료 일정 우선"은 false를 true보다 먼저 배치합니다.
     return (
       Number(first.completed) - Number(second.completed) ||
-      firstDateTime.localeCompare(secondDateTime) ||
+      compareDateTimeAscending(first, second) ||
       compareTitles(first, second)
     );
   });

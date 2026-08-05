@@ -13,6 +13,6 @@ export type ScheduleCategoryFilter = "전체" | ScheduleCategory;
 export type ScheduleSortOption =
   | "날짜 빠른순"
   | "날짜 늦은순"
-  | "시간순"
-  | "우선순위순"
-  | "완료되지 않은 일정 우선";
+  | "시간 빠른순"
+  | "우선순위 높은순"
+  | "미완료 일정 우선";
