@@ -5,6 +5,7 @@ import type {
 } from "../types/schedule";
 import type {
   ScheduleCategoryFilter,
+  ScheduleDateRangeFilter,
   ScheduleSortOption,
 } from "../types/ui";
 import {
@@ -13,12 +14,17 @@ import {
   getSchedules,
   updateSchedule,
 } from "../services/scheduleService";
-import { filterSchedules, sortSchedules } from "../utils/scheduleUtils";
+import {
+  filterSchedules,
+  filterSchedulesByDateRange,
+  sortSchedules,
+} from "../utils/scheduleUtils";
 
 export const useSchedules = (
   userId: string,
   searchText: string,
   categoryFilter: ScheduleCategoryFilter,
+  dateRangeFilter: ScheduleDateRangeFilter,
   sortOption: ScheduleSortOption,
 ) => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -48,10 +54,20 @@ export const useSchedules = (
     };
   }, [userId]);
 
-  const filteredSchedules = useMemo(
+  const searchAndCategoryFilteredSchedules = useMemo(
     // Firestore 원본 일정에 검색을 적용한 뒤 카테고리로 한 번 더 걸러냅니다.
     () => filterSchedules(schedules, searchText, categoryFilter),
     [categoryFilter, schedules, searchText],
+  );
+
+  // 검색과 카테고리 다음 단계에서 선택한 로컬 날짜 범위를 적용합니다.
+  const filteredSchedules = useMemo(
+    () =>
+      filterSchedulesByDateRange(
+        searchAndCategoryFilteredSchedules,
+        dateRangeFilter,
+      ),
+    [dateRangeFilter, searchAndCategoryFilteredSchedules],
   );
 
   // 검색과 카테고리 필터가 끝난 결과를 마지막 단계에서 정렬합니다.

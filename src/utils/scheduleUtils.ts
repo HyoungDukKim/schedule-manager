@@ -6,6 +6,7 @@ import type {
 } from "../types/schedule";
 import type {
   ScheduleCategoryFilter,
+  ScheduleDateRangeFilter,
   ScheduleSortOption,
 } from "../types/ui";
 import {
@@ -13,7 +14,13 @@ import {
   SCHEDULE_PRIORITIES,
   SCHEDULE_REPEATS,
 } from "../constants/schedule";
-import { getDateDifference, parseDate } from "./dateUtils";
+import {
+  addDays,
+  getDateDifference,
+  getLocalDate,
+  getMondayOfWeek,
+  parseDate,
+} from "./dateUtils";
 
 // Firestore에서 받은 값이 허용된 일정 카테고리인지 확인합니다.
 export const isScheduleCategory = (value: unknown): value is ScheduleCategory =>
@@ -110,6 +117,78 @@ export const sortSchedules = (
       compareTitles(first, second)
     );
   });
+};
+
+// 날짜 범위 안에서 일정이 한 번이라도 실제로 표시되는지 확인합니다.
+const occursInDateRange = (schedule: Schedule, startDate: Date, endDate: Date) => {
+  for (
+    let targetDate = startDate;
+    targetDate <= endDate;
+    targetDate = addDays(targetDate, 1)
+  ) {
+    // 기존 반복 일정 판정 함수를 재사용하여 매일·매주·매월 일정을 포함합니다.
+    if (isScheduleOnDate(schedule, targetDate)) return true;
+  }
+
+  return false;
+};
+
+// 선택한 필터가 나타내는 로컬 시작일과 종료일을 계산합니다.
+const getDateRange = (
+  dateRangeFilter: ScheduleDateRangeFilter,
+  referenceDate = new Date(),
+) => {
+  if (dateRangeFilter === "전체") return null;
+
+  const today = getLocalDate(referenceDate);
+
+  if (dateRangeFilter === "내일") {
+    const tomorrow = addDays(today, 1);
+    return { startDate: tomorrow, endDate: tomorrow };
+  }
+
+  if (dateRangeFilter === "이번 주") {
+    const monday = getMondayOfWeek(today);
+    return { startDate: monday, endDate: addDays(monday, 6) };
+  }
+
+  if (dateRangeFilter === "이번 달") {
+    return {
+      startDate: new Date(today.getFullYear(), today.getMonth(), 1),
+      endDate: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+    };
+  }
+
+  return { startDate: today, endDate: today };
+};
+
+// 달력의 각 날짜가 현재 선택한 날짜 범위 안에 있는지 확인합니다.
+export const isDateInScheduleRange = (
+  targetDate: Date,
+  dateRangeFilter: ScheduleDateRangeFilter,
+  referenceDate = new Date(),
+) => {
+  const dateRange = getDateRange(dateRangeFilter, referenceDate);
+  if (!dateRange) return true;
+
+  const localTargetDate = getLocalDate(targetDate);
+  return (
+    localTargetDate >= dateRange.startDate && localTargetDate <= dateRange.endDate
+  );
+};
+
+// 검색과 카테고리 필터가 끝난 일정에 로컬 날짜 범위를 적용합니다.
+export const filterSchedulesByDateRange = (
+  schedules: Schedule[],
+  dateRangeFilter: ScheduleDateRangeFilter,
+  referenceDate = new Date(),
+) => {
+  const dateRange = getDateRange(dateRangeFilter, referenceDate);
+  if (!dateRange) return schedules;
+
+  return schedules.filter((schedule) =>
+    occursInDateRange(schedule, dateRange.startDate, dateRange.endDate),
+  );
 };
 
 // 지정한 날짜에 단일 또는 반복 일정이 표시되어야 하는지 확인합니다.

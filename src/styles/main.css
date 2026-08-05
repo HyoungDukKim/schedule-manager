@@ -179,6 +179,53 @@
   color: #fff;
 }
 
+/* 날짜 범위 필터도 기존 카테고리 필터와 같은 카드 모양을 사용합니다. */
+.date-range-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.date-range-filter-label {
+  flex-shrink: 0;
+  color: #334155;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 좁은 화면에서는 버튼이 다음 줄로 자연스럽게 이동합니다. */
+.date-range-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.date-range-filter-buttons button {
+  padding: 8px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.date-range-filter-buttons button:hover,
+.date-range-filter-buttons button:focus-visible {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.date-range-filter-buttons button.active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
 /* 일정 정렬 제목과 선택 상자를 세로로 배치합니다. */
 .schedule-sort {
   display: flex;
@@ -1317,6 +1364,28 @@ aside {
   color: #fff;
 }
 
+/* 다크 모드에서도 날짜 필터의 대비가 유지되도록 색상을 맞춥니다. */
+:root[data-theme="dark"] .date-range-filter {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .date-range-filter-label {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .date-range-filter-buttons button {
+  border-color: #475569;
+  background: #0f172a;
+  color: #cbd5e1;
+}
+
+:root[data-theme="dark"] .date-range-filter-buttons button.active {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: #fff;
+}
+
 /* 다크 모드에서 정렬 선택 영역과 선택 상자의 색상을 조정합니다. */
 :root[data-theme="dark"] .schedule-sort {
   border-color: #334155;
@@ -2090,7 +2159,17 @@ button {
     flex-direction: column;
   }
 
+  /* 모바일에서는 날짜 제목과 버튼도 위아래로 배치해 넘침을 방지합니다. */
+  .date-range-filter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .category-filter-buttons {
+    width: 100%;
+  }
+
+  .date-range-filter-buttons {
     width: 100%;
   }
 

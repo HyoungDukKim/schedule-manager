@@ -18,6 +18,21 @@ export const parseDate = (dateString: string) => {
   return new Date(year, month - 1, day);
 };
 
+// 전달받은 날짜를 시간 정보가 없는 로컬 자정 기준 날짜로 만듭니다.
+export const getLocalDate = (date = new Date()) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+// 원본 Date 객체를 변경하지 않고 지정한 일수만큼 이동한 새 날짜를 반환합니다.
+export const addDays = (date: Date, amount: number) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
+
+// 별도 주간 기준이 없으므로 이번 주의 시작일을 월요일로 계산합니다.
+export const getMondayOfWeek = (date: Date) => {
+  const localDate = getLocalDate(date);
+  const daysAfterMonday = (localDate.getDay() + 6) % 7;
+  return addDays(localDate, -daysAfterMonday);
+};
+
 // 두 날짜 사이의 날짜 차이를 계산합니다.
 export const getDateDifference = (startDate: Date, targetDate: Date) => {
   const oneDay = 1000 * 60 * 60 * 24;

@@ -5,6 +5,7 @@ import type {
 } from "../types/schedule";
 import type {
   ScheduleCategoryFilter,
+  ScheduleDateRangeFilter,
   ScheduleSortOption,
 } from "../types/ui";
 
@@ -23,6 +24,15 @@ export const SCHEDULE_FILTER_CATEGORIES = [
   "전체",
   ...SCHEDULE_CATEGORIES,
 ] as const satisfies readonly ScheduleCategoryFilter[];
+
+// 날짜 범위 필터 버튼에 표시할 값을 한곳에서 관리합니다.
+export const SCHEDULE_DATE_RANGE_FILTERS = [
+  "전체",
+  "오늘",
+  "내일",
+  "이번 주",
+  "이번 달",
+] as const satisfies readonly ScheduleDateRangeFilter[];
 
 // 정렬 선택 상자에 표시할 옵션을 한곳에서 관리합니다.
 export const SCHEDULE_SORT_OPTIONS = [

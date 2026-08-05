@@ -4,11 +4,15 @@ import { memo, useCallback, useMemo, useState } from "react";
 
 // 일정 데이터 타입을 가져옵니다.
 import type { Schedule } from "../../types/schedule";
+import type { ScheduleDateRangeFilter } from "../../types/ui";
 
 // 부모 Main 컴포넌트에서 받을 Props 타입입니다.
 type Props = {
   // 달력에 표시할 일정 배열입니다.
   schedules: Schedule[];
+
+  // 선택한 날짜 범위 밖의 달력 칸에는 일정을 표시하지 않습니다.
+  dateRangeFilter: ScheduleDateRangeFilter;
 
   // 달력에서 일정을 눌렀을 때 수정폼을 여는 함수입니다.
   onEdit: (id: string) => void;
@@ -16,10 +20,14 @@ type Props = {
 
 import { WEEK_DAYS } from "../../constants/schedule";
 import { formatDate } from "../../utils/dateUtils";
-import { isScheduleOnDate } from "../../utils/scheduleUtils";
+import {
+  isDateInScheduleRange,
+  isScheduleOnDate,
+} from "../../utils/scheduleUtils";
 
 function CalendarView({
   schedules,
+  dateRangeFilter,
   onEdit,
 }: Props) {
   // 오늘 날짜입니다.
@@ -79,6 +87,13 @@ function CalendarView({
 
       const targetDate = new Date(currentYear, currentMonthIndex, day);
       const targetDateString = formatDate(currentYear, currentMonthIndex, day);
+
+      // 날짜 칸은 유지하되 선택 범위 밖에서는 일정만 비워 둡니다.
+      if (!isDateInScheduleRange(targetDate, dateRangeFilter, today)) {
+        result.set(targetDateString, []);
+        return;
+      }
+
       const dailySchedules = schedules
         .filter((schedule) => isScheduleOnDate(schedule, targetDate))
         .sort((first, second) => first.time.localeCompare(second.time));
@@ -87,7 +102,7 @@ function CalendarView({
     });
 
     return result;
-  }, [calendarCells, currentMonthIndex, currentYear, schedules]);
+  }, [calendarCells, currentMonthIndex, currentYear, dateRangeFilter, schedules, today]);
 
   // 이전 달로 이동합니다.
   const moveToPreviousMonth = useCallback(() => {

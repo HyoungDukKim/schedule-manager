@@ -11,6 +11,7 @@ import {
   getDefaultPriority,
   getDefaultRepeat,
   getDefaultTime,
+  SCHEDULE_DATE_RANGE_FILTERS,
   SCHEDULE_FILTER_CATEGORIES,
   SCHEDULE_SORT_OPTIONS,
 } from "../constants/schedule";
@@ -19,6 +20,7 @@ import { useTheme } from "../hooks/useTheme";
 import type { ScheduleFormValues } from "../types/schedule";
 import type {
   ScheduleCategoryFilter,
+  ScheduleDateRangeFilter,
   ScheduleSortOption,
   ViewMode,
 } from "../types/ui";
@@ -36,6 +38,9 @@ function Main({ userId }: Props) {
   // 처음에는 모든 카테고리의 일정을 표시합니다.
   const [categoryFilter, setCategoryFilter] =
     useState<ScheduleCategoryFilter>("전체");
+  // 처음에는 날짜 제한 없이 모든 일정을 표시합니다.
+  const [dateRangeFilter, setDateRangeFilter] =
+    useState<ScheduleDateRangeFilter>("전체");
   // 기본 정렬은 가장 이른 날짜와 시간이 먼저 보이는 방식입니다.
   const [sortOption, setSortOption] =
     useState<ScheduleSortOption>("날짜 빠른순");
@@ -52,7 +57,13 @@ function Main({ userId }: Props) {
     cancelEditing,
     toggleSchedule,
     deleteSchedule,
-  } = useSchedules(userId, searchText, categoryFilter, sortOption);
+  } = useSchedules(
+    userId,
+    searchText,
+    categoryFilter,
+    dateRangeFilter,
+    sortOption,
+  );
 
   // 검색어 앞뒤 공백을 제거하여 검색 결과 문구 표시 여부를 판단합니다.
   const normalizedSearchText = searchText.trim();
@@ -168,6 +179,25 @@ function Main({ userId }: Props) {
           </div>
         </div>
 
+        {/* 날짜 버튼은 검색과 카테고리 필터 결과에 추가로 적용됩니다. */}
+        <div className="date-range-filter" aria-label="일정 날짜 범위 필터">
+          <span className="date-range-filter-label">날짜</span>
+
+          <div className="date-range-filter-buttons">
+            {SCHEDULE_DATE_RANGE_FILTERS.map((dateRange) => (
+              <button
+                key={dateRange}
+                type="button"
+                className={dateRangeFilter === dateRange ? "active" : ""}
+                onClick={() => setDateRangeFilter(dateRange)}
+                aria-pressed={dateRangeFilter === dateRange}
+              >
+                {dateRange}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* 선택값이 바뀌면 검색과 카테고리 필터 결과를 다시 정렬합니다. */}
         <div className="schedule-sort">
           <label htmlFor="schedule-sort">일정 정렬</label>
@@ -214,7 +244,11 @@ function Main({ userId }: Props) {
           onDelete={deleteSchedule}
         />
       ) : (
-        <CalendarView schedules={filteredSchedules} onEdit={openEditForm} />
+        <CalendarView
+          schedules={filteredSchedules}
+          dateRangeFilter={dateRangeFilter}
+          onEdit={openEditForm}
+        />
       )}
     </main>
   );
