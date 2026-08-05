@@ -3,7 +3,10 @@ import type {
   SchedulePriority,
   ScheduleRepeat,
 } from "../types/schedule";
-import type { ScheduleCategoryFilter } from "../types/ui";
+import type {
+  ScheduleCategoryFilter,
+  ScheduleSortOption,
+} from "../types/ui";
 
 export const THEME_STORAGE_KEY = "schedule-theme";
 
@@ -20,6 +23,15 @@ export const SCHEDULE_FILTER_CATEGORIES = [
   "전체",
   ...SCHEDULE_CATEGORIES,
 ] as const satisfies readonly ScheduleCategoryFilter[];
+
+// 정렬 선택 상자에 표시할 옵션을 한곳에서 관리합니다.
+export const SCHEDULE_SORT_OPTIONS = [
+  "날짜 빠른순",
+  "날짜 늦은순",
+  "시간순",
+  "우선순위순",
+  "완료되지 않은 일정 우선",
+] as const satisfies readonly ScheduleSortOption[];
 
 export const SCHEDULE_PRIORITIES = [
   "높음",

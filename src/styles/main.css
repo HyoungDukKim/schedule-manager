@@ -116,12 +116,20 @@
   color: white;
 }
 
+/* 카테고리 필터와 정렬 선택 상자를 나란히 배치합니다. */
+.schedule-filter-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  margin-top: 14px;
+}
+
 /* 제목 검색과 함께 사용하는 카테고리 필터 영역입니다. */
 .category-filter {
   display: flex;
   align-items: center;
+  flex: 1;
   gap: 12px;
-  margin-top: 14px;
   padding: 12px 14px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -166,6 +174,44 @@
   border-color: #2563eb;
   background: #2563eb;
   color: #fff;
+}
+
+/* 일정 정렬 제목과 선택 상자를 세로로 배치합니다. */
+.schedule-sort {
+  display: flex;
+  min-width: 220px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.schedule-sort label {
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 기존 입력 요소와 어울리도록 정렬 선택 상자의 모양을 맞춥니다. */
+.schedule-sort select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.schedule-sort select:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 15%);
 }
 
 /* 검색 결과가 없을 때 표시합니다. */
@@ -658,6 +704,15 @@
 
   .view-toggle {
     align-self: flex-end;
+  }
+
+  /* 태블릿 이하에서는 카테고리 필터와 정렬 영역을 위아래로 배치합니다. */
+  .schedule-filter-controls {
+    flex-direction: column;
+  }
+
+  .schedule-sort {
+    min-width: 0;
   }
 
   .calendar-cell {
@@ -1253,6 +1308,22 @@ aside {
   border-color: #3b82f6;
   background: #3b82f6;
   color: #fff;
+}
+
+/* 다크 모드에서 정렬 선택 영역과 선택 상자의 색상을 조정합니다. */
+:root[data-theme="dark"] .schedule-sort {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .schedule-sort label {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .schedule-sort select {
+  border-color: #475569;
+  background: #0f172a;
+  color: #f8fafc;
 }
 
 /* --------------------------------------------------

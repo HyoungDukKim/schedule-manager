@@ -4,7 +4,10 @@ import type {
   SchedulePriority,
   ScheduleRepeat,
 } from "../types/schedule";
-import type { ScheduleCategoryFilter } from "../types/ui";
+import type {
+  ScheduleCategoryFilter,
+  ScheduleSortOption,
+} from "../types/ui";
 import {
   SCHEDULE_CATEGORIES,
   SCHEDULE_PRIORITIES,
@@ -44,6 +47,63 @@ export const filterSchedules = (
       categoryFilter === "전체" || schedule.category === categoryFilter;
 
     return matchesTitle && matchesCategory;
+  });
+};
+
+// 우선순위순 정렬에서 높은 우선순위가 먼저 오도록 숫자 값을 지정합니다.
+const PRIORITY_ORDER: Record<SchedulePriority, number> = {
+  높음: 0,
+  보통: 1,
+  낮음: 2,
+};
+
+// 날짜와 시간이 모두 같을 때도 일정한 순서를 유지하기 위한 제목 비교 함수입니다.
+const compareTitles = (first: Schedule, second: Schedule) =>
+  first.title.localeCompare(second.title, "ko");
+
+// 검색과 카테고리 필터가 끝난 배열의 복사본을 선택한 방식으로 정렬합니다.
+export const sortSchedules = (
+  schedules: Schedule[],
+  sortOption: ScheduleSortOption,
+) => {
+  // 원본 schedules 배열을 변경하지 않도록 전개 연산자로 먼저 복사합니다.
+  const copiedSchedules = [...schedules];
+
+  return copiedSchedules.sort((first, second) => {
+    // 날짜와 시간을 합친 문자열은 YYYY-MM-DD HH:mm 형식이라 문자열 비교가 가능합니다.
+    const firstDateTime = `${first.date} ${first.time}`;
+    const secondDateTime = `${second.date} ${second.time}`;
+
+    if (sortOption === "날짜 빠른순") {
+      return firstDateTime.localeCompare(secondDateTime) || compareTitles(first, second);
+    }
+
+    if (sortOption === "날짜 늦은순") {
+      return secondDateTime.localeCompare(firstDateTime) || compareTitles(first, second);
+    }
+
+    if (sortOption === "시간순") {
+      return (
+        first.time.localeCompare(second.time) ||
+        first.date.localeCompare(second.date) ||
+        compareTitles(first, second)
+      );
+    }
+
+    if (sortOption === "우선순위순") {
+      return (
+        PRIORITY_ORDER[first.priority] - PRIORITY_ORDER[second.priority] ||
+        firstDateTime.localeCompare(secondDateTime) ||
+        compareTitles(first, second)
+      );
+    }
+
+    // 완료 여부를 숫자로 바꾸면 미완료(false)가 완료(true)보다 먼저 배치됩니다.
+    return (
+      Number(first.completed) - Number(second.completed) ||
+      firstDateTime.localeCompare(secondDateTime) ||
+      compareTitles(first, second)
+    );
   });
 };
 
