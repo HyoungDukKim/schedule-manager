@@ -36,7 +36,7 @@ function Main({ userId }: Props) {
   // 처음에는 모든 카테고리의 일정을 표시합니다.
   const [categoryFilter, setCategoryFilter] =
     useState<ScheduleCategoryFilter>("전체");
-  // 기본 정렬 방식은 가장 이른 날짜와 시간이 먼저 보이는 방식입니다.
+  // 기본 정렬은 가장 이른 날짜와 시간이 먼저 보이는 방식입니다.
   const [sortOption, setSortOption] =
     useState<ScheduleSortOption>("날짜 빠른순");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -168,7 +168,7 @@ function Main({ userId }: Props) {
           </div>
         </div>
 
-        {/* 선택값이 바뀌면 필터가 적용된 일정 배열을 다시 정렬합니다. */}
+        {/* 선택값이 바뀌면 검색과 카테고리 필터 결과를 다시 정렬합니다. */}
         <div className="schedule-sort">
           <label htmlFor="schedule-sort">일정 정렬</label>
           <select
@@ -206,7 +206,7 @@ function Main({ userId }: Props) {
       ) : filteredSchedules.length === 0 ? (
         <div className="search-empty">검색 조건에 맞는 일정이 없습니다.</div>
       ) : viewMode === "list" ? (
-        // 목록 보기에서만 사용자가 선택한 정렬 순서를 적용합니다.
+        // 목록 보기에서만 사용자가 선택한 정렬 결과를 표시합니다.
         <ScheduleList
           schedules={sortedSchedules}
           onToggle={toggleSchedule}

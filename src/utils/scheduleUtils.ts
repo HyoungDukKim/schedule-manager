@@ -50,27 +50,27 @@ export const filterSchedules = (
   });
 };
 
-// 우선순위순 정렬에서 높은 우선순위가 먼저 오도록 숫자 값을 지정합니다.
+// 높은 우선순위에 더 작은 숫자를 지정하여 높음 → 보통 → 낮음 순서를 만듭니다.
 const PRIORITY_ORDER: Record<SchedulePriority, number> = {
   높음: 0,
   보통: 1,
   낮음: 2,
 };
 
-// 날짜와 시간이 모두 같을 때도 일정한 순서를 유지하기 위한 제목 비교 함수입니다.
-const compareTitles = (first: Schedule, second: Schedule) =>
-  first.title.localeCompare(second.title, "ko");
-
 // 날짜를 먼저 비교하고, 날짜가 같으면 더 빠른 시간을 앞에 배치합니다.
 const compareDateTimeAscending = (first: Schedule, second: Schedule) =>
   first.date.localeCompare(second.date) || first.time.localeCompare(second.time);
 
-// 검색과 카테고리 필터가 끝난 배열의 복사본을 선택한 방식으로 정렬합니다.
+// 앞의 조건이 모두 같을 때 제목으로 비교하여 화면 순서를 일정하게 유지합니다.
+const compareTitles = (first: Schedule, second: Schedule) =>
+  first.title.localeCompare(second.title, "ko");
+
+// 검색과 카테고리 필터가 끝난 일정의 복사본만 선택한 방식으로 정렬합니다.
 export const sortSchedules = (
   schedules: Schedule[],
   sortOption: ScheduleSortOption,
 ) => {
-  // 원본 schedules 배열을 변경하지 않도록 전개 연산자로 먼저 복사합니다.
+  // 전개 연산자로 새 배열을 만들어 원본 schedules 배열을 보호합니다.
   const copiedSchedules = [...schedules];
 
   return copiedSchedules.sort((first, second) => {
@@ -79,7 +79,7 @@ export const sortSchedules = (
     }
 
     if (sortOption === "날짜 늦은순") {
-      // 날짜는 늦은 날짜부터 보여주되, 같은 날짜 안에서는 빠른 시간이 먼저입니다.
+      // 날짜는 늦은 날짜부터, 같은 날짜 안에서는 빠른 시간부터 표시합니다.
       return (
         second.date.localeCompare(first.date) ||
         first.time.localeCompare(second.time) ||
@@ -103,7 +103,7 @@ export const sortSchedules = (
       );
     }
 
-    // 남은 옵션인 "미완료 일정 우선"은 false를 true보다 먼저 배치합니다.
+    // 남은 옵션은 미완료(false)를 완료(true)보다 먼저 배치합니다.
     return (
       Number(first.completed) - Number(second.completed) ||
       compareDateTimeAscending(first, second) ||

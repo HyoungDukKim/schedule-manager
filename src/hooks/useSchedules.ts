@@ -54,7 +54,7 @@ export const useSchedules = (
     [categoryFilter, schedules, searchText],
   );
 
-  // 필터 결과의 복사본만 정렬하여 원본 일정과 통계 계산 순서를 보호합니다.
+  // 검색과 카테고리 필터가 끝난 결과를 마지막 단계에서 정렬합니다.
   const sortedSchedules = useMemo(
     () => sortSchedules(filteredSchedules, sortOption),
     [filteredSchedules, sortOption],
