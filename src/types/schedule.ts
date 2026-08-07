@@ -17,7 +17,8 @@ export type ScheduleRepeat =
   | "반복 안함"
   | "매일"
   | "매주"
-  | "매월";
+  | "매월"
+  | "매년";
 
 // 일정 한 개의 전체 데이터 구조입니다.
 export interface Schedule {
@@ -46,6 +47,10 @@ export interface Schedule {
 
   // 일정 반복 규칙입니다.
   repeat: ScheduleRepeat;
+
+  // 반복 종료일입니다. 값이 없으면 종료 없이 계속 반복합니다.
+  // 기존 Firestore 문서와 호환되도록 선택 필드로 유지합니다.
+  repeatEndDate?: string;
 }
 
 export type ScheduleData = Omit<Schedule, "id">;

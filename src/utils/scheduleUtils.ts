@@ -19,6 +19,7 @@ import {
   getDateDifference,
   getLocalDate,
   getMondayOfWeek,
+  isSameLocalDate,
   parseDate,
 } from "./dateUtils";
 
@@ -191,29 +192,53 @@ export const filterSchedulesByDateRange = (
   );
 };
 
-// 지정한 날짜에 단일 또는 반복 일정이 표시되어야 하는지 확인합니다.
-export const isScheduleOnDate = (schedule: Schedule, targetDate: Date) => {
-  const scheduleDate = parseDate(schedule.date);
+// 반복 규칙과 선택적 종료일만으로 특정 로컬 날짜의 발생 여부를 계산합니다.
+export const isRecurringDate = (
+  startDate: Date,
+  targetDate: Date,
+  repeat: ScheduleRepeat,
+  endDate?: Date,
+) => {
+  // 시간 값의 영향을 받지 않도록 두 날짜를 모두 로컬 자정으로 맞춥니다.
+  const localStartDate = getLocalDate(startDate);
+  const localTargetDate = getLocalDate(targetDate);
 
-  // 일정 시작일보다 이전 날짜에는 일정을 표시하지 않습니다.
-  if (targetDate < scheduleDate) return false;
+  // 모든 반복은 시작일 당일부터 가능하며 시작일 이전에는 발생하지 않습니다.
+  if (localTargetDate < localStartDate) return false;
 
-  // 반복하지 않는 일정은 저장된 날짜와 대상 날짜가 같을 때만 표시합니다.
-  if (schedule.repeat === "반복 안함") {
-    return (
-      scheduleDate.getFullYear() === targetDate.getFullYear() &&
-      scheduleDate.getMonth() === targetDate.getMonth() &&
-      scheduleDate.getDate() === targetDate.getDate()
-    );
+  // 종료일이 있으면 종료일 당일까지 허용하고 다음 날부터 차단합니다.
+  if (endDate && localTargetDate > getLocalDate(endDate)) return false;
+
+  if (repeat === "반복 안함") {
+    return isSameLocalDate(localStartDate, localTargetDate);
   }
 
-  // 매일 반복 일정은 시작일 이후 모든 날짜에 표시합니다.
-  if (schedule.repeat === "매일") return true;
+  // 매일 반복은 시작일 이후의 모든 로컬 날짜에 발생합니다.
+  if (repeat === "매일") return true;
 
-  // 시작일과 대상 날짜의 차이로 주간 또는 월간 반복 여부를 계산합니다.
-  const difference = getDateDifference(scheduleDate, targetDate);
-  if (schedule.repeat === "매주") return difference % 7 === 0;
-  if (schedule.repeat === "매월") return scheduleDate.getDate() === targetDate.getDate();
+  if (repeat === "매주") {
+    // 시작일로부터 7일 단위인지 검사하므로 시작일과 같은 요일에만 발생합니다.
+    return getDateDifference(localStartDate, localTargetDate) % 7 === 0;
+  }
 
-  return false;
+  if (repeat === "매월") {
+    // 같은 일(day)이 실제로 존재하는 달에만 발생하며 없는 달은 건너뜁니다.
+    return localStartDate.getDate() === localTargetDate.getDate();
+  }
+
+  // 매년은 같은 월과 일에만 발생합니다.
+  // 평년에는 2월 29일이 없으므로 윤년의 2월 29일에만 자연스럽게 일치합니다.
+  return (
+    localStartDate.getMonth() === localTargetDate.getMonth() &&
+    localStartDate.getDate() === localTargetDate.getDate()
+  );
 };
+
+// 저장된 일정의 시작일과 반복 규칙을 이용해 특정 날짜의 표시 여부를 확인합니다.
+export const isScheduleOnDate = (schedule: Schedule, targetDate: Date) =>
+  isRecurringDate(
+    parseDate(schedule.date),
+    targetDate,
+    schedule.repeat,
+    schedule.repeatEndDate ? parseDate(schedule.repeatEndDate) : undefined,
+  );

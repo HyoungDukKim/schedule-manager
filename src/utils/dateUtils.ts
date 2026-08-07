@@ -22,6 +22,12 @@ export const parseDate = (dateString: string) => {
 export const getLocalDate = (date = new Date()) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
+// 시간은 무시하고 두 Date 객체의 로컬 연도·월·일이 같은지 확인합니다.
+export const isSameLocalDate = (firstDate: Date, secondDate: Date) =>
+  firstDate.getFullYear() === secondDate.getFullYear() &&
+  firstDate.getMonth() === secondDate.getMonth() &&
+  firstDate.getDate() === secondDate.getDate();
+
 // 원본 Date 객체를 변경하지 않고 지정한 일수만큼 이동한 새 날짜를 반환합니다.
 export const addDays = (date: Date, amount: number) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);

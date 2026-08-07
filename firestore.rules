@@ -7,7 +7,7 @@ service cloud.firestore {
     }
 
     function hasValidScheduleFields(data) {
-      let fields = [
+      let requiredFields = [
         'title',
         'completed',
         'date',
@@ -17,8 +17,19 @@ service cloud.firestore {
         'repeat'
       ];
 
-      return data.keys().hasAll(fields)
-        && data.keys().hasOnly(fields)
+      let allowedFields = [
+        'title',
+        'completed',
+        'date',
+        'time',
+        'category',
+        'priority',
+        'repeat',
+        'repeatEndDate'
+      ];
+
+      return data.keys().hasAll(requiredFields)
+        && data.keys().hasOnly(allowedFields)
         && data.title is string
         && data.title.size() > 0
         && data.title.size() <= 200
@@ -29,7 +40,10 @@ service cloud.firestore {
         && data.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
         && data.category in ['업무', '개인', '운동', '공부', '기타']
         && data.priority in ['높음', '보통', '낮음']
-        && data.repeat in ['반복 안함', '매일', '매주', '매월'];
+        && data.repeat in ['반복 안함', '매일', '매주', '매월', '매년']
+        && (!data.keys().hasAny(['repeatEndDate'])
+          || (data.repeatEndDate is string
+            && data.repeatEndDate.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')));
     }
 
     match /users/{userId} {

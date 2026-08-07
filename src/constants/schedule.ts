@@ -54,6 +54,7 @@ export const SCHEDULE_REPEATS = [
   "매일",
   "매주",
   "매월",
+  "매년",
 ] as const satisfies readonly ScheduleRepeat[];
 
 export const WEEK_DAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;

@@ -227,6 +227,7 @@ function Main({ userId }: Props) {
           initialCategory={editingSchedule?.category ?? getDefaultCategory()}
           initialPriority={editingSchedule?.priority ?? getDefaultPriority()}
           initialRepeat={editingSchedule?.repeat ?? getDefaultRepeat()}
+          initialRepeatEndDate={editingSchedule?.repeatEndDate}
           isEditing={editingSchedule !== null}
         />
       )}

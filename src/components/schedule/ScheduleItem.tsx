@@ -11,7 +11,17 @@ type Props = {
 };
 
 function ScheduleItem({
-  schedule: { id, title, date, time, category, priority, repeat, completed },
+  schedule: {
+    id,
+    title,
+    date,
+    time,
+    category,
+    priority,
+    repeat,
+    repeatEndDate,
+    completed,
+  },
   onToggle,
   onEdit,
   onDelete,
@@ -68,6 +78,8 @@ function ScheduleItem({
                 data-repeat={repeat}
               >
                 🔁 {repeat}
+                {/* 종료일이 있는 반복 일정은 배지 안에 종료일도 표시합니다. */}
+                {repeatEndDate && ` · ~ ${repeatEndDate}`}
               </span>
             )}
           </span>

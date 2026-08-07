@@ -87,7 +87,14 @@ export const useSchedules = (
         await updateSchedule(userId, editingSchedule.id, values);
         setSchedules((previous) =>
           previous.map((schedule) =>
-            schedule.id === editingSchedule.id ? { ...schedule, ...values } : schedule,
+            // 폼 값은 일정의 전체 편집 가능 필드이므로 종료일 제거도 그대로 반영합니다.
+            schedule.id === editingSchedule.id
+              ? {
+                  id: schedule.id,
+                  completed: schedule.completed,
+                  ...values,
+                }
+              : schedule,
           ),
         );
       } else {
