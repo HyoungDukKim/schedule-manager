@@ -1,0 +1,103 @@
+/* 네트워크와 앱 업데이트 상태를 화면 상단에 고정해 알립니다. */
+.pwa-notice {
+  position: fixed;
+  z-index: 2000;
+  top: 12px;
+  left: 50%;
+  display: flex;
+  width: min(560px, calc(100% - 24px));
+  padding: 11px 14px;
+  box-sizing: border-box;
+  border: 1px solid #93c5fd;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 16%);
+  font-size: 14px;
+  font-weight: bold;
+  transform: translateX(-50%);
+}
+
+.pwa-notice.offline {
+  border-color: #fbbf24;
+  background: #fffbeb;
+  color: #92400e;
+  justify-content: center;
+}
+
+.pwa-notice-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 7px;
+}
+
+.pwa-notice button {
+  padding: 7px 10px;
+  border: 1px solid #93c5fd;
+  border-radius: 7px;
+  background: #fff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.pwa-notice button:hover,
+.pwa-notice button:focus-visible {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* Firestore 요청 실패는 기존 본문 흐름을 밀어내는 작은 안내로 표시합니다. */
+.data-error-notice {
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+:root[data-theme="dark"] .pwa-notice {
+  border-color: #3b82f6;
+  background: #1e3a5f;
+  color: #dbeafe;
+}
+
+:root[data-theme="dark"] .pwa-notice.offline {
+  border-color: #d97706;
+  background: #422006;
+  color: #fde68a;
+}
+
+:root[data-theme="dark"] .pwa-notice button {
+  border-color: #475569;
+  background: #0f172a;
+  color: #bfdbfe;
+}
+
+:root[data-theme="dark"] .data-error-notice {
+  border-color: #d97706;
+  background: #422006;
+  color: #fde68a;
+}
+
+@media (max-width: 600px) {
+  /* 모바일에서는 안내 문구와 버튼을 세로로 배치해 화면 밖 넘침을 막습니다. */
+  .pwa-notice {
+    top: 8px;
+    align-items: stretch;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pwa-notice-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

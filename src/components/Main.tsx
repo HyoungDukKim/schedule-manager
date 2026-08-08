@@ -51,6 +51,7 @@ function Main({ userId }: Props) {
   const {
     filteredSchedules,
     sortedSchedules,
+    scheduleError,
     editingSchedule,
     openEditSchedule,
     saveSchedule,
@@ -115,6 +116,13 @@ function Main({ userId }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Firestore 접근 실패 시 빈 화면 대신 이해하기 쉬운 안내를 표시합니다. */}
+      {scheduleError && (
+        <div className="data-error-notice" role="alert">
+          {scheduleError}
+        </div>
+      )}
 
       <div className="schedule-toolbar">
         <div className="search-area">

@@ -20,6 +20,12 @@ import {
   sortSchedules,
 } from "../utils/scheduleUtils";
 
+// 오프라인은 전역 PWA 안내가 담당하고, 온라인 Firebase 오류만 본문에 표시합니다.
+const getScheduleErrorMessage = () =>
+  navigator.onLine
+    ? "일정 데이터에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요."
+    : null;
+
 export const useSchedules = (
   userId: string,
   searchText: string,
@@ -29,6 +35,7 @@ export const useSchedules = (
 ) => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
   const schedulesRef = useRef(schedules);
 
   useEffect(() => {
@@ -39,11 +46,14 @@ export const useSchedules = (
     let isActive = true;
 
     const fetchSchedules = async () => {
+      setScheduleError(null);
+
       try {
         const loadedSchedules = await getSchedules(userId);
         if (isActive) setSchedules(loadedSchedules);
       } catch (error) {
         console.error("Firestore에서 일정 데이터를 불러오지 못했습니다.", error);
+        if (isActive) setScheduleError(getScheduleErrorMessage());
       }
     };
 
@@ -103,9 +113,11 @@ export const useSchedules = (
         setSchedules((previous) => [...previous, { id, ...scheduleData }]);
       }
       setEditingSchedule(null);
+      setScheduleError(null);
       return true;
     } catch (error) {
       console.error("Firestore에 일정을 저장하지 못했습니다.", error);
+      setScheduleError(getScheduleErrorMessage());
       return false;
     }
   }, [editingSchedule, userId]);
@@ -124,8 +136,10 @@ export const useSchedules = (
           schedule.id === id ? { ...schedule, completed } : schedule,
         ),
       );
+      setScheduleError(null);
     } catch (error) {
       console.error("Firestore에서 일정 완료 상태를 변경하지 못했습니다.", error);
+      setScheduleError(getScheduleErrorMessage());
     }
   }, [userId]);
 
@@ -134,14 +148,17 @@ export const useSchedules = (
       await deleteScheduleFromFirestore(userId, id);
       setSchedules((previous) => previous.filter((schedule) => schedule.id !== id));
       if (editingSchedule?.id === id) setEditingSchedule(null);
+      setScheduleError(null);
     } catch (error) {
       console.error("Firestore에서 일정을 삭제하지 못했습니다.", error);
+      setScheduleError(getScheduleErrorMessage());
     }
   }, [editingSchedule, userId]);
 
   return {
     filteredSchedules,
     sortedSchedules,
+    scheduleError,
     editingSchedule,
     openEditSchedule,
     saveSchedule,

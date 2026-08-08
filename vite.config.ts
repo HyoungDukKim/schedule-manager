@@ -7,16 +7,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: [
-        'favicon.ico',
-        'pwa-icon.svg',
-        'pwa-64x64.png',
-        'apple-touch-icon-180x180.png',
-      ],
+      // 입력 중인 일정이 자동 새로고침으로 사라지지 않도록 사용자 확인 후 업데이트합니다.
+      registerType: 'prompt',
       manifest: {
         name: 'Schedule Manager',
-        short_name: 'Schedule',
+        short_name: '일정관리',
         description: '일정을 목록, 달력, 통계로 관리하는 애플리케이션',
         theme_color: '#2563eb',
         background_color: '#ffffff',
