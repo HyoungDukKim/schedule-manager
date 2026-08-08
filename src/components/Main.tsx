@@ -26,7 +26,7 @@ import type {
 } from "../types/ui";
 import { getToday } from "../utils/dateUtils";
 
-// 로그인 사용자의 일정만 조회하기 위해 사용자 ID를 전달받습니다.
+// 로그인 사용자의 일정만 조회하기 위해 사용자 ID를 전달받습니다...
 type Props = {
   userId: string;
 };
