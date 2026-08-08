@@ -6,6 +6,7 @@ import BackupRestore from "./backup/BackupRestore";
 import ScheduleForm from "./schedule/ScheduleForm";
 import ScheduleList from "./schedule/ScheduleList";
 import StatisticsView from "./statistics/StatisticsView";
+import NotificationCenter from "./notification/NotificationCenter";
 
 import {
   getDefaultCategory,
@@ -129,6 +130,8 @@ function Main({ userId }: Props) {
 
       <BackupRestore schedules={schedules} onImport={importSchedules} />
 
+      <NotificationCenter userId={userId} schedules={schedules} />
+
       <div className="schedule-toolbar">
         <div className="search-area">
           <label htmlFor="schedule-search">일정 검색</label>
@@ -241,6 +244,10 @@ function Main({ userId }: Props) {
           initialPriority={editingSchedule?.priority ?? getDefaultPriority()}
           initialRepeat={editingSchedule?.repeat ?? getDefaultRepeat()}
           initialRepeatEndDate={editingSchedule?.repeatEndDate}
+          initialNotificationEnabled={editingSchedule?.notificationEnabled}
+          initialNotificationMinutesBefore={
+            editingSchedule?.notificationMinutesBefore
+          }
           isEditing={editingSchedule !== null}
         />
       )}

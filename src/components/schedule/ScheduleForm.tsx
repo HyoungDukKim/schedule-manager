@@ -10,11 +10,13 @@ import type {
   ScheduleFormValues,
   SchedulePriority,
   ScheduleRepeat,
+  ScheduleNotificationMinutes,
 } from "../../types/schedule";
 import {
   SCHEDULE_CATEGORIES,
   SCHEDULE_PRIORITIES,
   SCHEDULE_REPEATS,
+  SCHEDULE_NOTIFICATION_OPTIONS,
 } from "../../constants/schedule";
 
 // 반복 종료 방식을 화면에서 구분하기 위한 값입니다.
@@ -36,6 +38,8 @@ type Props = {
   initialPriority: SchedulePriority;
   initialRepeat: ScheduleRepeat;
   initialRepeatEndDate?: string;
+  initialNotificationEnabled?: boolean;
+  initialNotificationMinutesBefore?: ScheduleNotificationMinutes;
 
   // 현재 수정 상태인지 나타냅니다.
   isEditing: boolean;
@@ -51,6 +55,8 @@ function ScheduleForm({
   initialPriority,
   initialRepeat,
   initialRepeatEndDate,
+  initialNotificationEnabled,
+  initialNotificationMinutesBefore,
   isEditing,
 }: Props) {
   // 일정 제목 State입니다.
@@ -96,6 +102,15 @@ function ScheduleForm({
   // 종료일 검증에 실패했을 때 사용자에게 보여줄 안내 문구입니다.
   const [repeatEndError, setRepeatEndError] = useState("");
 
+  // 기존 문서에는 알림 필드가 없을 수 있으므로 기본값은 사용 안 함입니다.
+  const [notificationEnabled, setNotificationEnabled] = useState(
+    initialNotificationEnabled ?? false,
+  );
+  const [notificationMinutesBefore, setNotificationMinutesBefore] =
+    useState<ScheduleNotificationMinutes>(
+      initialNotificationMinutesBefore ?? 0,
+    );
+
   // 저장 버튼을 눌렀을 때 실행합니다.
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>,
@@ -139,6 +154,10 @@ function ScheduleForm({
       repeat,
       // 종료 없음이거나 반복 안함이면 선택 필드를 Firestore에 보내지 않습니다.
       ...(usesRepeatEndDate ? { repeatEndDate } : {}),
+      // 알림을 사용하지 않으면 선택 필드를 저장하지 않아 기존 문서 구조를 유지합니다.
+      ...(notificationEnabled
+        ? { notificationEnabled: true, notificationMinutesBefore }
+        : {}),
     });
   };
 
@@ -334,6 +353,40 @@ function ScheduleForm({
           )}
         </fieldset>
       )}
+
+      {/* 일정별 알림을 선택적으로 켜고 허용된 사전 알림 시간만 선택합니다. */}
+      <fieldset className="notification-setting-field">
+        <legend>알림</legend>
+        <label className="notification-setting-toggle">
+          <input
+            type="checkbox"
+            checked={notificationEnabled}
+            onChange={(event) => setNotificationEnabled(event.target.checked)}
+          />
+          알림 사용
+        </label>
+
+        {notificationEnabled && (
+          <div className="notification-time-select">
+            <label htmlFor="schedule-notification-time">알림 시간</label>
+            <select
+              id="schedule-notification-time"
+              value={notificationMinutesBefore}
+              onChange={(event) =>
+                setNotificationMinutesBefore(
+                  Number(event.target.value) as ScheduleNotificationMinutes,
+                )
+              }
+            >
+              {SCHEDULE_NOTIFICATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </fieldset>
 
       {/* 저장과 취소 버튼 */}
       <div className="button-group">

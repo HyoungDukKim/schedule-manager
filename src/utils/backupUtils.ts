@@ -20,6 +20,8 @@ const CSV_HEADERS = [
   "priority",
   "repeat",
   "repeatEndDate",
+  "notificationEnabled",
+  "notificationMinutesBefore",
 ] as const;
 
 // Excel은 사용자가 바로 읽을 수 있도록 한글 헤더를 사용합니다.
@@ -32,6 +34,8 @@ const EXCEL_HEADERS = [
   "우선순위",
   "반복",
   "반복종료일",
+  "알림사용",
+  "알림시간(분전)",
 ] as const;
 
 const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
@@ -61,7 +65,7 @@ const downloadBlob = (blob: Blob, fileName: string) => {
 };
 
 // 쉼표, 큰따옴표, 줄바꿈이 있는 제목도 안전하게 CSV 한 칸으로 만듭니다.
-const escapeCsvCell = (value: string | boolean) => {
+const escapeCsvCell = (value: string | boolean | number) => {
   const text = String(value);
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 };
@@ -76,6 +80,8 @@ const getBackupValues = (schedule: Schedule) => [
   schedule.priority,
   schedule.repeat,
   schedule.repeatEndDate ?? "",
+  schedule.notificationEnabled ?? false,
+  schedule.notificationEnabled ? (schedule.notificationMinutesBefore ?? 0) : "",
 ];
 
 // 테스트 가능한 순수 함수로 UTF-8 BOM이 포함된 CSV 문자열을 만듭니다.
@@ -111,6 +117,8 @@ export const createSchedulesXlsx = async (schedules: Schedule[]) => {
       schedule.priority,
       schedule.repeat,
       schedule.repeatEndDate ?? "",
+      schedule.notificationEnabled ?? false,
+      schedule.notificationEnabled ? (schedule.notificationMinutesBefore ?? 0) : "",
     ]),
   ]);
   worksheet["!cols"] = [
@@ -122,6 +130,8 @@ export const createSchedulesXlsx = async (schedules: Schedule[]) => {
     { wch: 12 },
     { wch: 12 },
     { wch: 15 },
+    { wch: 11 },
+    { wch: 16 },
   ];
 
   const workbook = XLSX.utils.book_new();
@@ -185,6 +195,13 @@ const validateRecord = (
   const repeatEndDate = getText(
     getField(record, "repeatEndDate", "반복종료일"),
   );
+  const notificationEnabled = parseCompleted(
+    getField(record, "notificationEnabled", "알림사용"),
+  );
+  const notificationMinutesText = getText(
+    getField(record, "notificationMinutesBefore", "알림시간(분전)"),
+  );
+  const notificationMinutes = Number(notificationMinutesText);
 
   if (!title) return { rowNumber, reason: "제목이 비어 있습니다." };
   if (title.length > 200) {
@@ -210,6 +227,15 @@ const validateRecord = (
   if (repeatEndDate && repeatEndDate < date) {
     return { rowNumber, reason: "반복 종료일이 시작일보다 빠릅니다." };
   }
+  if (notificationEnabled === null) {
+    return { rowNumber, reason: "알림 사용 값은 true 또는 false여야 합니다." };
+  }
+  if (
+    notificationEnabled &&
+    (!notificationMinutesText || ![0, 5, 10, 30, 60].includes(notificationMinutes))
+  ) {
+    return { rowNumber, reason: "알림 시간은 0, 5, 10, 30, 60 중 하나여야 합니다." };
+  }
 
   return {
     rowNumber,
@@ -222,6 +248,12 @@ const validateRecord = (
       priority,
       repeat,
       ...(repeatEndDate ? { repeatEndDate } : {}),
+      ...(notificationEnabled
+        ? {
+            notificationEnabled: true,
+            notificationMinutesBefore: notificationMinutes as 0 | 5 | 10 | 30 | 60,
+          }
+        : {}),
     },
   };
 };

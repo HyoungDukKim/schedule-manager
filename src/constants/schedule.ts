@@ -2,6 +2,7 @@ import type {
   ScheduleCategory,
   SchedulePriority,
   ScheduleRepeat,
+  ScheduleNotificationMinutes,
 } from "../types/schedule";
 import type {
   ScheduleCategoryFilter,
@@ -56,6 +57,18 @@ export const SCHEDULE_REPEATS = [
   "매월",
   "매년",
 ] as const satisfies readonly ScheduleRepeat[];
+
+// Firestore Rules와 입력 UI가 같은 알림 시간 목록을 사용합니다.
+export const SCHEDULE_NOTIFICATION_OPTIONS = [
+  { value: 0, label: "정시" },
+  { value: 5, label: "5분 전" },
+  { value: 10, label: "10분 전" },
+  { value: 30, label: "30분 전" },
+  { value: 60, label: "1시간 전" },
+] as const satisfies readonly {
+  value: ScheduleNotificationMinutes;
+  label: string;
+}[];
 
 export const WEEK_DAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 

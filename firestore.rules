@@ -25,7 +25,9 @@ service cloud.firestore {
         'category',
         'priority',
         'repeat',
-        'repeatEndDate'
+        'repeatEndDate',
+        'notificationEnabled',
+        'notificationMinutesBefore'
       ];
 
       return data.keys().hasAll(requiredFields)
@@ -43,7 +45,15 @@ service cloud.firestore {
         && data.repeat in ['반복 안함', '매일', '매주', '매월', '매년']
         && (!data.keys().hasAny(['repeatEndDate'])
           || (data.repeatEndDate is string
-            && data.repeatEndDate.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')));
+            && data.repeatEndDate.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')))
+        && (!data.keys().hasAny(['notificationEnabled'])
+          || data.notificationEnabled is bool)
+        && (!data.keys().hasAny(['notificationMinutesBefore'])
+          || (data.notificationMinutesBefore is int
+            && data.notificationMinutesBefore in [0, 5, 10, 30, 60]))
+        && (!data.keys().hasAny(['notificationEnabled'])
+          || data.notificationEnabled == false
+          || data.keys().hasAny(['notificationMinutesBefore']));
     }
 
     match /users/{userId} {

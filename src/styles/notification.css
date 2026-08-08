@@ -1,0 +1,141 @@
+.notification-center {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.notification-center h3,
+.notification-center p {
+  margin: 0;
+}
+
+.notification-center h3 {
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.notification-center p {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.notification-center button {
+  flex-shrink: 0;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.notification-permission {
+  display: inline-block;
+  margin-top: 9px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.notification-permission-granted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.notification-permission-denied,
+.notification-permission-unsupported {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.notification-help,
+.notification-message {
+  max-width: 330px;
+}
+
+.notification-setting-field {
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.notification-setting-field legend {
+  color: #334155;
+  font-weight: bold;
+}
+
+.notification-setting-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.notification-setting-toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.notification-time-select {
+  margin-top: 12px;
+}
+
+.notification-time-select label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: bold;
+}
+
+.notification-time-select select {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+}
+
+:root[data-theme="dark"] .notification-center,
+:root[data-theme="dark"] .notification-setting-field {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .notification-center h3,
+:root[data-theme="dark"] .notification-setting-field legend,
+:root[data-theme="dark"] .notification-time-select label {
+  color: #f8fafc;
+}
+
+:root[data-theme="dark"] .notification-center p {
+  color: #cbd5e1;
+}
+
+@media (max-width: 600px) {
+  .notification-center {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notification-center button {
+    width: 100%;
+  }
+
+  .notification-help,
+  .notification-message {
+    max-width: none;
+  }
+}

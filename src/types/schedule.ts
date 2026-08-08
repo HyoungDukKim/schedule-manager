@@ -20,6 +20,9 @@ export type ScheduleRepeat =
   | "매월"
   | "매년";
 
+// 일정 알림을 얼마나 일찍 표시할지 나타내는 허용 값입니다.
+export type ScheduleNotificationMinutes = 0 | 5 | 10 | 30 | 60;
+
 // 일정 한 개의 전체 데이터 구조입니다.
 export interface Schedule {
   // Firestore 문서 ID입니다.
@@ -51,6 +54,10 @@ export interface Schedule {
   // 반복 종료일입니다. 값이 없으면 종료 없이 계속 반복합니다.
   // 기존 Firestore 문서와 호환되도록 선택 필드로 유지합니다.
   repeatEndDate?: string;
+
+  // 기존 Firestore 문서와 호환되도록 알림 설정은 선택 필드로 유지합니다.
+  notificationEnabled?: boolean;
+  notificationMinutesBefore?: ScheduleNotificationMinutes;
 }
 
 export type ScheduleData = Omit<Schedule, "id">;

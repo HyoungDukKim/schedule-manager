@@ -26,6 +26,12 @@ const getScheduleDocument = (userId: string, scheduleId: string) =>
 
 // Firestore의 선택적 반복 종료일이 YYYY-MM-DD 형식인지 확인합니다.
 const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const NOTIFICATION_MINUTES = [0, 5, 10, 30, 60] as const;
+
+// Firestore에서 읽은 값이 앱이 허용하는 알림 시간인지 확인합니다.
+const isNotificationMinutes = (value: unknown) =>
+  typeof value === "number" &&
+  NOTIFICATION_MINUTES.includes(value as (typeof NOTIFICATION_MINUTES)[number]);
 
 const isScheduleData = (value: unknown): value is ScheduleData => {
   if (typeof value !== "object" || value === null) return false;
@@ -41,7 +47,13 @@ const isScheduleData = (value: unknown): value is ScheduleData => {
     isScheduleRepeat(schedule.repeat) &&
     (schedule.repeatEndDate === undefined ||
       (typeof schedule.repeatEndDate === "string" &&
-        DATE_PATTERN.test(schedule.repeatEndDate)))
+        DATE_PATTERN.test(schedule.repeatEndDate))) &&
+    (schedule.notificationEnabled === undefined ||
+      typeof schedule.notificationEnabled === "boolean") &&
+    (schedule.notificationMinutesBefore === undefined ||
+      isNotificationMinutes(schedule.notificationMinutesBefore)) &&
+    (schedule.notificationEnabled !== true ||
+      isNotificationMinutes(schedule.notificationMinutesBefore))
   );
 };
 
@@ -105,6 +117,12 @@ export const updateSchedule = async (
   // 완료 체크처럼 repeat를 보내지 않는 부분 수정에서는 기존 종료일을 유지합니다.
   if ("repeat" in schedule && !schedule.repeatEndDate) {
     updateData.repeatEndDate = deleteField();
+  }
+
+  // 전체 폼 수정에서 알림을 끄면 이전 알림 선택 필드를 함께 제거합니다.
+  if ("repeat" in schedule && schedule.notificationEnabled !== true) {
+    updateData.notificationEnabled = deleteField();
+    updateData.notificationMinutesBefore = deleteField();
   }
 
   await updateDoc(getScheduleDocument(userId, id), updateData);
