@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import "../styles/main.css";
 
 import CalendarView from "./calendar/CalendarView";
+import BackupRestore from "./backup/BackupRestore";
 import ScheduleForm from "./schedule/ScheduleForm";
 import ScheduleList from "./schedule/ScheduleList";
 import StatisticsView from "./statistics/StatisticsView";
@@ -49,6 +50,7 @@ function Main({ userId }: Props) {
   // 테마와 일정 데이터 로직은 Custom Hook으로 분리했습니다.
   const { theme, toggleTheme } = useTheme();
   const {
+    schedules,
     filteredSchedules,
     sortedSchedules,
     scheduleError,
@@ -56,6 +58,7 @@ function Main({ userId }: Props) {
     openEditSchedule,
     saveSchedule,
     cancelEditing,
+    importSchedules,
     toggleSchedule,
     deleteSchedule,
   } = useSchedules(
@@ -123,6 +126,8 @@ function Main({ userId }: Props) {
           {scheduleError}
         </div>
       )}
+
+      <BackupRestore schedules={schedules} onImport={importSchedules} />
 
       <div className="schedule-toolbar">
         <div className="search-area">

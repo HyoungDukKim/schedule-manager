@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   Schedule,
+  ScheduleData,
   ScheduleFormValues,
 } from "../types/schedule";
 import type {
@@ -10,6 +11,7 @@ import type {
 } from "../types/ui";
 import {
   addSchedule,
+  addSchedules as addSchedulesToFirestore,
   deleteSchedule as deleteScheduleFromFirestore,
   getSchedules,
   updateSchedule,
@@ -46,6 +48,12 @@ export const useSchedules = (
     let isActive = true;
 
     const fetchSchedules = async () => {
+      // Effect 본문의 동기 State 변경을 피하면서 계정 전환 직후 이전 일정을 비웁니다.
+      await Promise.resolve();
+      if (!isActive) return;
+      setSchedules([]);
+      schedulesRef.current = [];
+      setEditingSchedule(null);
       setScheduleError(null);
 
       try {
@@ -124,6 +132,20 @@ export const useSchedules = (
 
   const cancelEditing = useCallback(() => setEditingSchedule(null), []);
 
+  // 미리보기에서 확인한 일정만 현재 로그인 사용자의 새 문서로 추가합니다.
+  const importSchedules = useCallback(async (values: ScheduleData[]) => {
+    try {
+      const importedSchedules = await addSchedulesToFirestore(userId, values);
+      setSchedules((previous) => [...previous, ...importedSchedules]);
+      setScheduleError(null);
+      return true;
+    } catch (error) {
+      console.error("Firestore에 백업 일정을 가져오지 못했습니다.", error);
+      setScheduleError(getScheduleErrorMessage());
+      return false;
+    }
+  }, [userId]);
+
   const toggleSchedule = useCallback(async (id: string) => {
     const selectedSchedule = schedulesRef.current.find((schedule) => schedule.id === id);
     if (!selectedSchedule) return;
@@ -156,6 +178,7 @@ export const useSchedules = (
   }, [editingSchedule, userId]);
 
   return {
+    schedules,
     filteredSchedules,
     sortedSchedules,
     scheduleError,
@@ -163,6 +186,7 @@ export const useSchedules = (
     openEditSchedule,
     saveSchedule,
     cancelEditing,
+    importSchedules,
     toggleSchedule,
     deleteSchedule,
   };

@@ -6,6 +6,7 @@ import {
   deleteDoc,
   deleteField,
   doc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { Schedule, ScheduleData } from "../types/schedule";
@@ -65,6 +66,31 @@ export const addSchedule = async (
   );
 
   return documentRef.id;
+};
+
+// 검증과 사용자 확인이 끝난 백업 일정을 새 문서로 일괄 추가합니다.
+export const addSchedules = async (
+  userId: string,
+  schedules: ScheduleData[],
+): Promise<Schedule[]> => {
+  const importedSchedules: Schedule[] = [];
+  const collectionReference = getSchedulesCollection(userId);
+
+  // Firestore batch는 최대 500개 쓰기를 지원하므로 안전하게 나눠 저장합니다.
+  for (let start = 0; start < schedules.length; start += 500) {
+    const chunk = schedules.slice(start, start + 500);
+    const batch = writeBatch(db);
+    const chunkWithIds = chunk.map((schedule) => {
+      const documentReference = doc(collectionReference);
+      batch.set(documentReference, schedule);
+      return { id: documentReference.id, ...schedule };
+    });
+
+    await batch.commit();
+    importedSchedules.push(...chunkWithIds);
+  }
+
+  return importedSchedules;
 };
 
 // 일정 수정
