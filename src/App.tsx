@@ -13,6 +13,7 @@ import "./styles/layout.css";
 import "./styles/responsive-final.css";
 import "./styles/pwa.css";
 import "./styles/notification.css";
+import "./styles/ai-schedule.css";
 
 function App() {
   // 인증 Hook에서 현재 사용자와 로그인·로그아웃 함수를 가져옵니다.

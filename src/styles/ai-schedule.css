@@ -1,0 +1,228 @@
+.ai-schedule {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #eff6ff;
+}
+
+.ai-schedule-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ai-schedule h3,
+.ai-schedule h4,
+.ai-schedule p {
+  margin: 0;
+}
+
+.ai-schedule-header h3 {
+  color: #1e3a8a;
+  font-size: 18px;
+}
+
+.ai-schedule-header p {
+  margin-top: 5px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.ai-schedule-header > span {
+  flex-shrink: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.ai-schedule form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  margin-top: 14px;
+}
+
+.ai-schedule form label {
+  grid-column: 1 / -1;
+  font-weight: bold;
+}
+
+.ai-schedule textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+}
+
+.ai-schedule textarea:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 15%);
+}
+
+.ai-schedule form button,
+.ai-preview-actions button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.ai-schedule form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ai-schedule-error {
+  margin-top: 12px !important;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.ai-schedule-preview {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.ai-schedule-preview h4 {
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.ai-schedule-preview dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.ai-schedule-preview dl > div {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr);
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: #f8fafc;
+}
+
+.ai-schedule-preview dt {
+  color: #475569;
+  font-weight: bold;
+}
+
+.ai-schedule-preview dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ai-clarification {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.ai-clarification p {
+  margin-top: 6px;
+}
+
+.ai-clarification ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.ai-preview-help {
+  margin-top: 12px !important;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ai-preview-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ai-preview-actions button:last-child {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+}
+
+:root[data-theme="dark"] .ai-schedule {
+  border-color: #1d4ed8;
+  background: #172554;
+}
+
+:root[data-theme="dark"] .ai-schedule-header h3,
+:root[data-theme="dark"] .ai-schedule-preview h4 {
+  color: #dbeafe;
+}
+
+:root[data-theme="dark"] .ai-schedule-header p,
+:root[data-theme="dark"] .ai-schedule-header > span,
+:root[data-theme="dark"] .ai-preview-help {
+  color: #cbd5e1;
+}
+
+:root[data-theme="dark"] .ai-schedule-preview {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .ai-schedule-preview dl > div {
+  background: #0f172a;
+}
+
+:root[data-theme="dark"] .ai-schedule-preview dt {
+  color: #94a3b8;
+}
+
+@media (max-width: 700px) {
+  .ai-schedule form {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-schedule form button {
+    width: 100%;
+  }
+
+  .ai-schedule-preview dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .ai-schedule {
+    padding: 14px;
+  }
+
+  .ai-schedule-header {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ai-preview-actions {
+    flex-direction: column;
+  }
+
+  .ai-preview-actions button {
+    width: 100%;
+  }
+}

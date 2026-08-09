@@ -5,16 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && tsc -p tsconfig.api.json && vite build",
+    "typecheck:api": "tsc -p tsconfig.api.json",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate:pwa-icons": "pwa-assets-generator --preset minimal public/pwa-icon.svg"
   },
   "dependencies": {
     "firebase": "^12.16.0",
+    "firebase-admin": "^14.2.0",
+    "openai": "^7.4.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

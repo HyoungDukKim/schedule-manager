@@ -7,6 +7,7 @@ import ScheduleForm from "./schedule/ScheduleForm";
 import ScheduleList from "./schedule/ScheduleList";
 import StatisticsView from "./statistics/StatisticsView";
 import NotificationCenter from "./notification/NotificationCenter";
+import AiScheduleInput from "./ai/AiScheduleInput";
 
 import {
   getDefaultCategory,
@@ -20,6 +21,7 @@ import {
 import { useSchedules } from "../hooks/useSchedules";
 import { useTheme } from "../hooks/useTheme";
 import type { ScheduleFormValues } from "../types/schedule";
+import type { AiScheduleDraft } from "../types/aiSchedule";
 import type {
   ScheduleCategoryFilter,
   ScheduleDateRangeFilter,
@@ -36,6 +38,8 @@ type Props = {
 function Main({ userId }: Props) {
   // 화면 표시 상태는 Main이 담당합니다.
   const [showForm, setShowForm] = useState(false);
+  const [aiFormDraft, setAiFormDraft] = useState<AiScheduleDraft | null>(null);
+  const [formVersion, setFormVersion] = useState(0);
   const [searchText, setSearchText] = useState("");
   // 처음에는 모든 카테고리의 일정을 표시합니다.
   const [categoryFilter, setCategoryFilter] =
@@ -75,10 +79,14 @@ function Main({ userId }: Props) {
 
   const openAddForm = useCallback(() => {
     cancelEditing();
+    setAiFormDraft(null);
+    setFormVersion((version) => version + 1);
     setShowForm(true);
   }, [cancelEditing]);
 
   const openEditForm = useCallback((id: string) => {
+    setAiFormDraft(null);
+    setFormVersion((version) => version + 1);
     openEditSchedule(id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -86,13 +94,31 @@ function Main({ userId }: Props) {
 
   const cancelForm = useCallback(() => {
     setShowForm(false);
+    setAiFormDraft(null);
     cancelEditing();
   }, [cancelEditing]);
 
   const handleSave = useCallback(async (values: ScheduleFormValues) => {
     const saved = await saveSchedule(values);
-    if (saved) setShowForm(false);
+    if (saved) {
+      setShowForm(false);
+      setAiFormDraft(null);
+    }
   }, [saveSchedule]);
+
+  // AI Draft는 저장하지 않고 기존 폼의 초기값으로만 전달합니다.
+  const applyAiDraft = useCallback((draft: AiScheduleDraft) => {
+    cancelEditing();
+    setAiFormDraft(draft);
+    setFormVersion((version) => version + 1);
+    setShowForm(true);
+    window.requestAnimationFrame(() => {
+      document.querySelector(".schedule-form")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [cancelEditing]);
 
   return (
     <main className="main">
@@ -127,6 +153,8 @@ function Main({ userId }: Props) {
           {scheduleError}
         </div>
       )}
+
+      <AiScheduleInput onApply={applyAiDraft} />
 
       <BackupRestore schedules={schedules} onImport={importSchedules} />
 
@@ -235,20 +263,41 @@ function Main({ userId }: Props) {
 
       {showForm && (
         <ScheduleForm
+          key={formVersion}
           onSave={handleSave}
           onCancel={cancelForm}
-          initialTitle={editingSchedule?.title ?? ""}
-          initialDate={editingSchedule?.date ?? getToday()}
-          initialTime={editingSchedule?.time ?? getDefaultTime()}
-          initialCategory={editingSchedule?.category ?? getDefaultCategory()}
-          initialPriority={editingSchedule?.priority ?? getDefaultPriority()}
-          initialRepeat={editingSchedule?.repeat ?? getDefaultRepeat()}
-          initialRepeatEndDate={editingSchedule?.repeatEndDate}
-          initialNotificationEnabled={editingSchedule?.notificationEnabled}
-          initialNotificationMinutesBefore={
-            editingSchedule?.notificationMinutesBefore
+          initialTitle={
+            aiFormDraft ? aiFormDraft.title ?? "" : editingSchedule?.title ?? ""
           }
-          isEditing={editingSchedule !== null}
+          initialDate={
+            aiFormDraft ? aiFormDraft.date ?? "" : editingSchedule?.date ?? getToday()
+          }
+          initialTime={
+            aiFormDraft ? aiFormDraft.time ?? "" : editingSchedule?.time ?? getDefaultTime()
+          }
+          initialCategory={
+            aiFormDraft?.category ?? editingSchedule?.category ?? getDefaultCategory()
+          }
+          initialPriority={
+            aiFormDraft?.priority ?? editingSchedule?.priority ?? getDefaultPriority()
+          }
+          initialRepeat={
+            aiFormDraft?.repeat ?? editingSchedule?.repeat ?? getDefaultRepeat()
+          }
+          initialRepeatEndDate={
+            aiFormDraft
+              ? aiFormDraft.repeatEndDate ?? undefined
+              : editingSchedule?.repeatEndDate
+          }
+          initialNotificationEnabled={
+            aiFormDraft?.notificationEnabled ?? editingSchedule?.notificationEnabled
+          }
+          initialNotificationMinutesBefore={
+            aiFormDraft
+              ? aiFormDraft.notificationMinutesBefore ?? undefined
+              : editingSchedule?.notificationMinutesBefore
+          }
+          isEditing={editingSchedule !== null && aiFormDraft === null}
         />
       )}
 
