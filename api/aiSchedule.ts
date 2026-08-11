@@ -1,14 +1,14 @@
 import OpenAI from "openai";
+import type {
+  AiScheduleDraft,
+  AiScheduleRequest,
+} from "../shared/aiScheduleValidation.js";
+import { validateAiScheduleDraft } from "../shared/aiScheduleValidation.js";
 import {
   SCHEDULE_CATEGORIES,
   SCHEDULE_PRIORITIES,
   SCHEDULE_REPEATS,
-} from "../src/constants/schedule";
-import type {
-  AiScheduleDraft,
-  AiScheduleRequest,
-} from "../src/types/aiSchedule";
-import { validateAiScheduleDraft } from "../src/utils/scheduleValidation";
+} from "../shared/scheduleValues.js";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const OPENAI_TIMEOUT_MS = 15_000;

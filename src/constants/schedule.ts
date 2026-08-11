@@ -9,16 +9,16 @@ import type {
   ScheduleDateRangeFilter,
   ScheduleSortOption,
 } from "../types/ui";
+import {
+  SCHEDULE_CATEGORIES as SHARED_SCHEDULE_CATEGORIES,
+  SCHEDULE_NOTIFICATION_MINUTES,
+  SCHEDULE_PRIORITIES as SHARED_SCHEDULE_PRIORITIES,
+  SCHEDULE_REPEATS as SHARED_SCHEDULE_REPEATS,
+} from "../../shared/scheduleValues.js";
 
 export const THEME_STORAGE_KEY = "schedule-theme";
 
-export const SCHEDULE_CATEGORIES = [
-  "업무",
-  "개인",
-  "운동",
-  "공부",
-  "기타",
-] as const satisfies readonly ScheduleCategory[];
+export const SCHEDULE_CATEGORIES = SHARED_SCHEDULE_CATEGORIES satisfies readonly ScheduleCategory[];
 
 // 화면의 카테고리 필터에는 전체 보기 항목을 함께 제공합니다.
 export const SCHEDULE_FILTER_CATEGORIES = [
@@ -44,28 +44,16 @@ export const SCHEDULE_SORT_OPTIONS = [
   "미완료 일정 우선",
 ] as const satisfies readonly ScheduleSortOption[];
 
-export const SCHEDULE_PRIORITIES = [
-  "높음",
-  "보통",
-  "낮음",
-] as const satisfies readonly SchedulePriority[];
+export const SCHEDULE_PRIORITIES = SHARED_SCHEDULE_PRIORITIES satisfies readonly SchedulePriority[];
 
-export const SCHEDULE_REPEATS = [
-  "반복 안함",
-  "매일",
-  "매주",
-  "매월",
-  "매년",
-] as const satisfies readonly ScheduleRepeat[];
+export const SCHEDULE_REPEATS = SHARED_SCHEDULE_REPEATS satisfies readonly ScheduleRepeat[];
 
 // Firestore Rules와 입력 UI가 같은 알림 시간 목록을 사용합니다.
-export const SCHEDULE_NOTIFICATION_OPTIONS = [
-  { value: 0, label: "정시" },
-  { value: 5, label: "5분 전" },
-  { value: 10, label: "10분 전" },
-  { value: 30, label: "30분 전" },
-  { value: 60, label: "1시간 전" },
-] as const satisfies readonly {
+const NOTIFICATION_LABELS = ["정시", "5분 전", "10분 전", "30분 전", "1시간 전"] as const;
+
+export const SCHEDULE_NOTIFICATION_OPTIONS = SCHEDULE_NOTIFICATION_MINUTES.map(
+  (value, index) => ({ value, label: NOTIFICATION_LABELS[index] }),
+) satisfies readonly {
   value: ScheduleNotificationMinutes;
   label: string;
 }[];

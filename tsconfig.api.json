@@ -16,12 +16,6 @@
   },
   "include": [
     "api/**/*.ts",
-    "src/constants/schedule.ts",
-    "src/types/aiSchedule.ts",
-    "src/types/schedule.ts",
-    "src/types/ui.ts",
-    "src/utils/dateUtils.ts",
-    "src/utils/scheduleUtils.ts",
-    "src/utils/scheduleValidation.ts"
+    "shared/**/*.ts"
   ]
 }

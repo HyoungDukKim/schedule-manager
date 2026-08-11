@@ -1,17 +1,17 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import OpenAI from "openai";
-import { aiScheduleRequestSchema } from "../src/utils/scheduleValidation";
+import { aiScheduleRequestSchema } from "../shared/aiScheduleValidation.js";
 import {
   AiOutputMissingError,
   AiOutputValidationError,
   AiRefusalError,
   analyzeScheduleText,
-} from "./aiSchedule";
+} from "./aiSchedule.js";
 import {
   FirebaseAdminConfigurationError,
   verifyFirebaseIdToken,
-} from "./firebaseAdmin";
-import { checkAiRateLimit } from "./rateLimit";
+} from "./firebaseAdmin.js";
+import { checkAiRateLimit } from "./rateLimit.js";
 
 type VercelRequest = IncomingMessage & { body?: unknown };
 type VercelResponse = ServerResponse;
