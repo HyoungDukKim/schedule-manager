@@ -1,7 +1,13 @@
 import type { ScheduleCategory } from "./schedule";
 
-// 화면에서 사용할 보기 방식입니다.
-export type ViewMode = "list" | "calendar" | "statistics";
+// 단일 페이지 앱에서 상단·하단 메뉴로 전환할 전체 화면 종류입니다.
+export type AppView =
+  | "calendar"
+  | "schedules"
+  | "ai"
+  | "statistics"
+  | "backup"
+  | "settings";
 
 // 애플리케이션 테마 종류입니다.
 export type Theme = "light" | "dark";

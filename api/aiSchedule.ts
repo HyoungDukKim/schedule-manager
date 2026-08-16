@@ -9,6 +9,10 @@ import {
   SCHEDULE_PRIORITIES,
   SCHEDULE_REPEATS,
 } from "../shared/scheduleValues.js";
+import {
+  buildRelativeDateReference,
+  resolveRelativeDate,
+} from "../shared/relativeDate.js";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const OPENAI_TIMEOUT_MS = 15_000;
@@ -79,8 +83,15 @@ const buildInstructions = ({ context }: AiScheduleRequest) => `
 - locale: ${context.locale}
 - 한 주의 시작: 월요일
 
+[사용자 localDate로 미리 계산한 날짜표]
+${buildRelativeDateReference(context)}
+
 [필수 정책]
-1. 오늘, 내일, 이번주 금요일, 다음주 월요일 등의 상대 날짜는 위 사용자 기준 시각으로 계산합니다. 서버 UTC 시각을 사용하지 않습니다.
+1. 오늘, 내일, 모레, 이번주, 다음주 등의 상대 날짜는 위 사용자 기준 시각과 미리 계산된 날짜표를 사용합니다. 서버 UTC 시각을 사용하지 않습니다.
+1-1. 이번주는 localDate가 포함된 월요일~일요일이고, 다음주는 그 다음 월요일~일요일입니다.
+1-2. 상대 날짜와 요일이 함께 나오면 반환할 YYYY-MM-DD의 실제 요일을 반드시 다시 계산해 표현된 요일과 같은지 확인합니다.
+1-3. 예를 들어 다음주 토요일은 날짜표의 다음주 토요일 값을 그대로 사용하며 같은 주의 다른 요일을 선택하지 않습니다.
+1-4. 다음달은 localDate가 속한 달의 바로 다음 달이며 12월 다음은 다음 연도 1월입니다. 올해와 내년도 localDate의 연도를 기준으로 합니다.
 2. 제목, 날짜, 시간이 명확하지 않으면 추측하지 말고 해당 값을 null로 두고 needsClarification을 true로 설정합니다.
 3. category는 업무, 개인, 운동, 공부, 기타만 사용합니다. 확실하지 않으면 기타를 사용합니다.
 4. priority는 높음, 보통, 낮음만 사용합니다. 언급이 없으면 보통입니다.
@@ -146,5 +157,13 @@ export const analyzeScheduleText = async (
     },
   });
 
-  return parseStructuredDraft(response);
+  const draft = parseStructuredDraft(response);
+  const verifiedRelativeDate = resolveRelativeDate(request.text, request.context);
+
+  // 명확한 상대 날짜는 두 번째 AI 호출 없이 서버 계산값으로 교차 검증하고 보정합니다.
+  if (verifiedRelativeDate && draft.date !== verifiedRelativeDate) {
+    return { ...draft, date: verifiedRelativeDate };
+  }
+
+  return draft;
 };

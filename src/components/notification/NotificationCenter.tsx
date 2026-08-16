@@ -5,6 +5,7 @@ import { getDueScheduleNotifications } from "../../utils/notificationUtils";
 type Props = {
   userId: string;
   schedules: Schedule[];
+  showControls?: boolean;
 };
 
 type PermissionState = NotificationPermission | "unsupported";
@@ -38,7 +39,7 @@ const writeHistory = (userId: string, history: Record<string, number>) => {
   }
 };
 
-function NotificationCenter({ userId, schedules }: Props) {
+function NotificationCenter({ userId, schedules, showControls = true }: Props) {
   const supported = "Notification" in window;
   const [permission, setPermission] = useState<PermissionState>(
     supported ? Notification.permission : "unsupported",
@@ -168,6 +169,9 @@ function NotificationCenter({ userId, schedules }: Props) {
       : permission === "denied"
         ? "알림 차단됨"
         : "알림 권한 필요";
+
+  // 알림 검사는 모든 화면에서 계속 실행하고 권한 UI만 설정 화면에 표시합니다.
+  if (!showControls) return null;
 
   return (
     <section className="notification-center" aria-labelledby="notification-title">

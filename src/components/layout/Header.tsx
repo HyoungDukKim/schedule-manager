@@ -7,9 +7,10 @@ type Props = {
   user: User;
   onSwitchAccount: () => void | Promise<void>;
   onLogout: () => void | Promise<void>;
+  onAddSchedule: () => void;
 };
 
-function Header({ user, onSwitchAccount, onLogout }: Props) {
+function Header({ user, onSwitchAccount, onLogout, onAddSchedule }: Props) {
   // 사용자 메뉴가 열려 있는지 관리합니다.
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
@@ -62,10 +63,10 @@ function Header({ user, onSwitchAccount, onLogout }: Props) {
       {/* 기존 애플리케이션 로고를 그대로 표시합니다. */}
       <div className="logo">📅 Schedule Manager</div>
 
-      <nav className="menu" aria-label="상단 메뉴">
-        {/* 기존 검색 및 설정 아이콘입니다. */}
-        <span aria-hidden="true">🔍</span>
-        <span aria-hidden="true">⚙️</span>
+      <div className="header-actions">
+        <button type="button" className="header-add-btn" onClick={onAddSchedule}>
+          + 일정 추가
+        </button>
 
         <div className="header-user-menu" ref={userMenuRef}>
           {/* 프로필 버튼을 누르면 사용자 메뉴를 열거나 닫습니다. */}
@@ -104,7 +105,7 @@ function Header({ user, onSwitchAccount, onLogout }: Props) {
             </div>
           )}
         </div>
-      </nav>
+      </div>
     </header>
   );
 }

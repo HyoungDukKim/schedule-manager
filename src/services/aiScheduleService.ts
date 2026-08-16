@@ -21,8 +21,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 type ErrorEnvelope = { error?: { code?: unknown; message?: unknown } };
 type SuccessEnvelope = { draft?: unknown };
 
-const createRequestContext = (): AiScheduleRequest["context"] => {
-  const now = new Date();
+export const createRequestContext = (
+  now = new Date(),
+): AiScheduleRequest["context"] => {
   return {
     localDate: formatDate(now.getFullYear(), now.getMonth(), now.getDate()),
     localTime: `${padNumber(now.getHours())}:${padNumber(now.getMinutes())}`,

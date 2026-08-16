@@ -116,6 +116,78 @@
   color: white;
 }
 
+/* 메뉴별 화면의 콘텐츠 시작 간격을 통일합니다. */
+.app-view-panel,
+.settings-grid {
+  margin-top: 20px;
+}
+
+.app-view-panel[hidden] {
+  display: none;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.settings-card h3,
+.settings-card p {
+  margin: 0;
+}
+
+.settings-card p {
+  margin-top: 7px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.settings-account-name {
+  color: #1e293b !important;
+  font-weight: 800;
+}
+
+.settings-status {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+:root[data-theme="dark"] .settings-card {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .settings-card p {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .settings-account-name {
+  color: #f8fafc !important;
+}
+
+@media (max-width: 700px) {
+  .settings-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 /* 카테고리 필터와 정렬 선택 상자를 나란히 배치합니다. */
 .schedule-filter-controls {
   display: flex;

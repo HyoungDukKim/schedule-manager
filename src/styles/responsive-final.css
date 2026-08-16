@@ -132,6 +132,10 @@
 
 /* 작은 태블릿과 휴대전화 화면입니다. */
 @media (max-width: 700px) {
+  body {
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+  }
+
   .main {
     padding: 18px 14px;
   }

@@ -24,20 +24,28 @@
   font-weight: bold;
 }
 
-/* Header 오른쪽의 아이콘과 사용자 메뉴를 가로로 배치합니다. */
-.menu {
+/* Header 오른쪽의 일정 추가 버튼과 사용자 메뉴를 가로로 배치합니다. */
+.header-actions {
   display: flex;
-
-  gap: 20px;
-
-  font-size: 22px;
-
+  align-items: center;
+  gap: 12px;
 }
 
-/* 기존 검색과 설정 아이콘을 세로 가운데에 맞춥니다. */
-.menu span {
-  align-self: center;
-  font-size: 14px;
+.header-add-btn {
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 8px;
+  background: #fff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.header-add-btn:hover,
+.header-add-btn:focus-visible {
+  outline: none;
+  background: #eff6ff;
 }
 
 /* 드롭다운의 기준 위치가 되는 사용자 메뉴 영역입니다. */
@@ -152,13 +160,8 @@
     font-size: 18px;
   }
 
-  .menu {
+  .header-actions {
     gap: 8px;
-  }
-
-  .menu > span:first-child,
-  .menu > span:nth-child(2) {
-    display: none;
   }
 
   .user-menu-trigger {
@@ -168,6 +171,11 @@
 
 /* 매우 좁은 화면에서는 사용자 이름을 숨기고 프로필 사진만 표시합니다. */
 @media (max-width: 480px) {
+  .header-add-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
   .user-menu-label {
     display: none;
   }

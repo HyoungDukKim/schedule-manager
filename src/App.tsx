@@ -1,5 +1,3 @@
-import Header from "./components/layout/Header";
-import Sidebar from "./components/layout/Sidebar";
 import Main from "./components/Main";
 import Footer from "./components/layout/Footer";
 import LoginView from "./components/auth/LoginView";
@@ -39,21 +37,16 @@ function App() {
     );
   }
 
-  // 로그인한 사용자에게 기존 일정관리 화면과 사용자 메뉴를 표시합니다.
+  // 사용자 UID가 바뀌면 Main을 새로 마운트하여 기본 달력 화면에서 시작합니다.
   return (
     <>
       <PwaStatus />
-      <Header
+      <Main
+        key={user.uid}
         user={user}
         onSwitchAccount={login}
         onLogout={logout}
       />
-
-      <div className="container">
-        <Sidebar />
-        <Main userId={user.uid} />
-      </div>
-
       <Footer />
     </>
   );
