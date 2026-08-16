@@ -16,19 +16,23 @@ type Props = {
 
   // 달력에서 일정을 눌렀을 때 수정폼을 여는 함수입니다.
   onEdit: (id: string) => void;
+
+  // 선택한 날짜를 초기값으로 기존 일정 폼을 여는 함수입니다.
+  onAddForDate: (date: string) => void;
 };
 
 import { WEEK_DAYS } from "../../constants/schedule";
-import { formatDate } from "../../utils/dateUtils";
+import { formatDate, parseDate } from "../../utils/dateUtils";
 import {
+  getSchedulesForDate,
   isDateInScheduleRange,
-  isScheduleOnDate,
 } from "../../utils/scheduleUtils";
 
 function CalendarView({
   schedules,
   dateRangeFilter,
   onEdit,
+  onAddForDate,
 }: Props) {
   // 오늘 날짜입니다.
   const [today] = useState(() => new Date());
@@ -45,6 +49,11 @@ function CalendarView({
         1,
       ),
     );
+
+  // 달력을 처음 열면 오늘 일정을 바로 확인할 수 있도록 오늘을 선택합니다.
+  const [selectedDate, setSelectedDate] = useState(() =>
+    formatDate(today.getFullYear(), today.getMonth(), today.getDate()),
+  );
 
   // 현재 달력의 연도입니다.
   const currentYear =
@@ -94,9 +103,7 @@ function CalendarView({
         return;
       }
 
-      const dailySchedules = schedules
-        .filter((schedule) => isScheduleOnDate(schedule, targetDate))
-        .sort((first, second) => first.time.localeCompare(second.time));
+      const dailySchedules = getSchedulesForDate(schedules, targetDate);
 
       result.set(targetDateString, dailySchedules);
     });
@@ -104,15 +111,38 @@ function CalendarView({
     return result;
   }, [calendarCells, currentMonthIndex, currentYear, dateRangeFilter, schedules, today]);
 
+  // 반복 일정을 포함해 선택한 날짜에 실제 발생하는 일정만 시간순으로 표시합니다.
+  const selectedDateSchedules = useMemo(() => {
+    const targetDate = parseDate(selectedDate);
+    return getSchedulesForDate(schedules, targetDate);
+  }, [schedules, selectedDate]);
+
+  const selectedDateParts = selectedDate.split("-").map(Number);
+  const selectedDateLabel = `${selectedDateParts[0]}년 ${selectedDateParts[1]}월 ${selectedDateParts[2]}일`;
+
+  // 다른 달로 이동하면 그 달이 오늘의 달인 경우 오늘을, 아니면 1일을 선택합니다.
+  const moveMonth = useCallback((amount: number) => {
+    const nextMonth = new Date(currentYear, currentMonthIndex + amount, 1);
+    const isTodayMonth =
+      nextMonth.getFullYear() === today.getFullYear() &&
+      nextMonth.getMonth() === today.getMonth();
+    setCurrentMonth(nextMonth);
+    setSelectedDate(formatDate(
+      nextMonth.getFullYear(),
+      nextMonth.getMonth(),
+      isTodayMonth ? today.getDate() : 1,
+    ));
+  }, [currentMonthIndex, currentYear, today]);
+
   // 이전 달로 이동합니다.
   const moveToPreviousMonth = useCallback(() => {
-    setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1));
-  }, []);
+    moveMonth(-1);
+  }, [moveMonth]);
 
   // 다음 달로 이동합니다.
   const moveToNextMonth = useCallback(() => {
-    setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1));
-  }, []);
+    moveMonth(1);
+  }, [moveMonth]);
 
   // 오늘이 포함된 달로 이동합니다.
   const moveToToday = useCallback(() => {
@@ -123,6 +153,7 @@ function CalendarView({
         1,
       ),
     );
+    setSelectedDate(formatDate(today.getFullYear(), today.getMonth(), today.getDate()));
   }, [today]);
 
   return (
@@ -206,6 +237,7 @@ function CalendarView({
                 today.getMonth(),
                 today.getDate(),
               );
+            const isSelected = targetDateString === selectedDate;
 
             // 해당 날짜에 표시할 일정을 찾습니다.
             const dailySchedules = schedulesByDate.get(targetDateString) ?? [];
@@ -215,7 +247,18 @@ function CalendarView({
                 key={targetDateString}
                 className={`calendar-cell ${
                   isToday ? "today" : ""
-                }`}
+                } ${isSelected ? "selected" : ""}`}
+                role="button"
+                tabIndex={0}
+                aria-label={`${currentMonthIndex + 1}월 ${day}일 선택`}
+                aria-pressed={isSelected}
+                onClick={() => setSelectedDate(targetDateString)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedDate(targetDateString);
+                  }
+                }}
               >
                 {/* 날짜 숫자입니다. */}
                 <div className="calendar-date-header">
@@ -245,9 +288,11 @@ function CalendarView({
                         data-category={
                           schedule.category
                         }
-                        onClick={() =>
-                          onEdit(schedule.id)
-                        }
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelectedDate(targetDateString);
+                          onEdit(schedule.id);
+                        }}
                         title={`${schedule.time} ${schedule.title}`}
                       >
                         <span className="calendar-schedule-time">
@@ -278,6 +323,38 @@ function CalendarView({
           },
         )}
       </div>
+
+      <section className="selected-date-panel" aria-labelledby="selected-date-title">
+        <h3 id="selected-date-title">{selectedDateLabel} 일정</h3>
+
+        {selectedDateSchedules.length === 0 ? (
+          <p className="selected-date-empty">등록된 일정이 없습니다.</p>
+        ) : (
+          <div className="selected-date-list">
+            {selectedDateSchedules.map((schedule) => (
+              <button
+                key={schedule.id}
+                type="button"
+                className={`selected-date-schedule ${schedule.completed ? "completed" : ""}`}
+                data-category={schedule.category}
+                onClick={() => onEdit(schedule.id)}
+              >
+                <strong>{schedule.time}</strong>
+                <span className="selected-date-schedule-title">{schedule.title}</span>
+                <span className="category-badge" data-category={schedule.category}>🏷 {schedule.category}</span>
+                <span className="priority-badge" data-priority={schedule.priority}>{schedule.priority}</span>
+                {schedule.repeat !== "반복 안함" && (
+                  <span className="repeat-badge" data-repeat={schedule.repeat}>🔁 {schedule.repeat}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button type="button" className="selected-date-add-btn" onClick={() => onAddForDate(selectedDate)}>
+          + {selectedDateParts[1]}월 {selectedDateParts[2]}일 일정 등록
+        </button>
+      </section>
     </section>
   );
 }

@@ -51,6 +51,7 @@ const VIEW_COPY: Record<AppView, { title: string; description: string }> = {
 function Main({ user, onSwitchAccount, onLogout }: Props) {
   const [appView, setAppView] = useState<AppView>("calendar");
   const [showForm, setShowForm] = useState(false);
+  const [addFormDate, setAddFormDate] = useState<string | null>(null);
   const [aiFormDraft, setAiFormDraft] = useState<AiScheduleDraft | null>(null);
   const [formVersion, setFormVersion] = useState(0);
   const [searchText, setSearchText] = useState("");
@@ -70,6 +71,19 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
   const openAddForm = useCallback(() => {
     cancelEditing();
     setAiFormDraft(null);
+    setAddFormDate(null);
+    setFormVersion((version) => version + 1);
+    setShowForm(true);
+    window.requestAnimationFrame(() => {
+      document.querySelector(".schedule-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [cancelEditing]);
+
+  // 달력 아래 등록 버튼은 선택한 날짜만 새 일정 기본값으로 전달합니다.
+  const openAddFormForDate = useCallback((date: string) => {
+    cancelEditing();
+    setAiFormDraft(null);
+    setAddFormDate(date);
     setFormVersion((version) => version + 1);
     setShowForm(true);
     window.requestAnimationFrame(() => {
@@ -79,6 +93,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
 
   const openEditForm = useCallback((id: string) => {
     setAiFormDraft(null);
+    setAddFormDate(null);
     setFormVersion((version) => version + 1);
     openEditSchedule(id);
     setShowForm(true);
@@ -88,6 +103,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
   const cancelForm = useCallback(() => {
     setShowForm(false);
     setAiFormDraft(null);
+    setAddFormDate(null);
     cancelEditing();
   }, [cancelEditing]);
 
@@ -96,12 +112,14 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
     if (saved) {
       setShowForm(false);
       setAiFormDraft(null);
+      setAddFormDate(null);
     }
   }, [saveSchedule]);
 
   const applyAiDraft = useCallback((draft: AiScheduleDraft) => {
     cancelEditing();
     setAiFormDraft(draft);
+    setAddFormDate(null);
     setFormVersion((version) => version + 1);
     setShowForm(true);
     window.requestAnimationFrame(() => {
@@ -130,7 +148,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
               onSave={handleSave}
               onCancel={cancelForm}
               initialTitle={aiFormDraft ? aiFormDraft.title ?? "" : editingSchedule?.title ?? ""}
-              initialDate={aiFormDraft ? aiFormDraft.date ?? "" : editingSchedule?.date ?? getToday()}
+              initialDate={aiFormDraft ? aiFormDraft.date ?? "" : addFormDate ?? editingSchedule?.date ?? getToday()}
               initialTime={aiFormDraft ? aiFormDraft.time ?? "" : editingSchedule?.time ?? getDefaultTime()}
               initialCategory={aiFormDraft?.category ?? editingSchedule?.category ?? getDefaultCategory()}
               initialPriority={aiFormDraft?.priority ?? editingSchedule?.priority ?? getDefaultPriority()}
@@ -145,7 +163,12 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
           <NotificationCenter userId={user.uid} schedules={schedules} showControls={appView === "settings"} />
 
           {appView === "calendar" && (
-            <CalendarView schedules={schedules} dateRangeFilter="전체" onEdit={openEditForm} />
+            <CalendarView
+              schedules={schedules}
+              dateRangeFilter="전체"
+              onEdit={openEditForm}
+              onAddForDate={openAddFormForDate}
+            />
           )}
 
           {appView === "schedules" && (

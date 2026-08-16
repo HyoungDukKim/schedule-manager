@@ -765,6 +765,22 @@
   box-shadow: inset 0 0 0 2px #60a5fa;
 }
 
+/* 선택 날짜는 주황색 안쪽 테두리로 표시해 파란색 오늘 표시와 구분합니다. */
+.calendar-cell.selected {
+  position: relative;
+  outline: 3px solid #f59e0b;
+  outline-offset: -3px;
+}
+
+.calendar-cell:not(.empty) {
+  cursor: pointer;
+}
+
+.calendar-cell:not(.empty):focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: -3px;
+}
+
 /* 날짜 숫자와 일정 개수를 배치합니다. */
 .calendar-date-header {
   display: flex;
@@ -880,6 +896,148 @@
 .calendar-repeat {
   flex-shrink: 0;
   font-weight: bold;
+}
+
+/* 선택한 날짜의 실제 발생 일정을 달력 바로 아래에 표시합니다. */
+.selected-date-panel {
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.selected-date-panel h3 {
+  margin: 0 0 14px;
+  color: #1e293b;
+  font-size: 18px;
+}
+
+.selected-date-list {
+  display: grid;
+  gap: 8px;
+}
+
+.selected-date-schedule {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 64px minmax(140px, 1fr) auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+}
+
+.selected-date-schedule:hover,
+.selected-date-schedule:focus-visible {
+  border-color: #60a5fa;
+  outline: none;
+  background: #eff6ff;
+}
+
+.selected-date-schedule[data-category="업무"] { border-left-color: #3b82f6; }
+.selected-date-schedule[data-category="개인"] { border-left-color: #a855f7; }
+.selected-date-schedule[data-category="운동"] { border-left-color: #22c55e; }
+.selected-date-schedule[data-category="공부"] { border-left-color: #f97316; }
+.selected-date-schedule[data-category="기타"] { border-left-color: #64748b; }
+
+.selected-date-schedule.completed .selected-date-schedule-title {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.selected-date-schedule-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.selected-date-empty {
+  margin: 0;
+  padding: 18px;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  text-align: center;
+}
+
+.selected-date-add-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.selected-date-add-btn:hover,
+.selected-date-add-btn:focus-visible {
+  outline: none;
+  background: #1d4ed8;
+}
+
+:root[data-theme="dark"] .calendar-cell.selected,
+:root[data-theme="dark"] .calendar-cell:not(.empty):focus-visible {
+  outline-color: #fbbf24;
+}
+
+:root[data-theme="dark"] .selected-date-panel {
+  border-color: #334155;
+  background: #111827;
+}
+
+:root[data-theme="dark"] .selected-date-panel h3,
+:root[data-theme="dark"] .selected-date-schedule {
+  color: #f8fafc;
+}
+
+:root[data-theme="dark"] .selected-date-schedule,
+:root[data-theme="dark"] .selected-date-empty {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+:root[data-theme="dark"] .selected-date-schedule:hover,
+:root[data-theme="dark"] .selected-date-schedule:focus-visible {
+  border-color: #60a5fa;
+  background: #172554;
+}
+
+:root[data-theme="dark"] .selected-date-empty {
+  color: #94a3b8;
+}
+
+@media (max-width: 700px) {
+  .selected-date-panel {
+    padding: 14px;
+  }
+
+  .selected-date-schedule {
+    grid-template-columns: 54px minmax(0, 1fr);
+  }
+
+  .selected-date-schedule .category-badge,
+  .selected-date-schedule .priority-badge,
+  .selected-date-schedule .repeat-badge {
+    width: fit-content;
+  }
+
+  .selected-date-schedule .category-badge {
+    grid-column: 1 / 2;
+  }
+
+  .selected-date-schedule .priority-badge,
+  .selected-date-schedule .repeat-badge {
+    grid-column: 2 / 3;
+  }
 }
 
 /* --------------------------------------------------

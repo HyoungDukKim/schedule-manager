@@ -242,3 +242,14 @@ export const isScheduleOnDate = (schedule: Schedule, targetDate: Date) =>
     schedule.repeat,
     schedule.repeatEndDate ? parseDate(schedule.repeatEndDate) : undefined,
   );
+
+// 선택한 날짜에 실제 발생하는 일정의 복사본을 시간과 제목 순으로 정렬합니다.
+export const getSchedulesForDate = (
+  schedules: Schedule[],
+  targetDate: Date,
+) => schedules
+  .filter((schedule) => isScheduleOnDate(schedule, targetDate))
+  .sort((first, second) =>
+    first.time.localeCompare(second.time) ||
+    first.title.localeCompare(second.title, "ko"),
+  );
