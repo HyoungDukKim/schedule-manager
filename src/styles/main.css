@@ -898,6 +898,12 @@
   font-weight: bold;
 }
 
+/* 모바일 전용 보조 표시는 PC 달력에서 숨깁니다. */
+.calendar-more-count,
+.calendar-dots {
+  display: none;
+}
+
 /* 선택한 날짜의 실제 발생 일정을 달력 바로 아래에 표시합니다. */
 .selected-date-panel {
   padding: 20px;
@@ -906,9 +912,34 @@
 }
 
 .selected-date-panel h3 {
-  margin: 0 0 14px;
+  margin: 0;
   color: #1e293b;
   font-size: 18px;
+}
+
+.selected-date-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.selected-date-panel-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.selected-date-panel-header button {
+  padding: 5px 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
 }
 
 .selected-date-list {
@@ -919,7 +950,7 @@
 .selected-date-schedule {
   display: grid;
   width: 100%;
-  grid-template-columns: 64px minmax(140px, 1fr) auto auto auto;
+  grid-template-columns: 64px minmax(140px, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
@@ -954,6 +985,12 @@
   min-width: 0;
   overflow-wrap: anywhere;
   font-weight: 700;
+}
+
+.selected-date-schedule-meta {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .selected-date-empty {
@@ -999,6 +1036,17 @@
   color: #f8fafc;
 }
 
+:root[data-theme="dark"] .selected-date-panel-header > div,
+:root[data-theme="dark"] .selected-date-schedule-meta {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .selected-date-panel-header button {
+  border-color: #475569;
+  background: #0f172a;
+  color: #cbd5e1;
+}
+
 :root[data-theme="dark"] .selected-date-schedule,
 :root[data-theme="dark"] .selected-date-empty {
   border-color: #475569;
@@ -1024,19 +1072,9 @@
     grid-template-columns: 54px minmax(0, 1fr);
   }
 
-  .selected-date-schedule .category-badge,
-  .selected-date-schedule .priority-badge,
-  .selected-date-schedule .repeat-badge {
-    width: fit-content;
-  }
-
-  .selected-date-schedule .category-badge {
-    grid-column: 1 / 2;
-  }
-
-  .selected-date-schedule .priority-badge,
-  .selected-date-schedule .repeat-badge {
+  .selected-date-schedule-meta {
     grid-column: 2 / 3;
+    white-space: normal;
   }
 }
 

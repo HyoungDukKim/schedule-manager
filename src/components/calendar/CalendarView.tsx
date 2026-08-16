@@ -50,9 +50,11 @@ function CalendarView({
       ),
     );
 
-  // 달력을 처음 열면 오늘 일정을 바로 확인할 수 있도록 오늘을 선택합니다.
-  const [selectedDate, setSelectedDate] = useState(() =>
-    formatDate(today.getFullYear(), today.getMonth(), today.getDate()),
+  // 모바일은 전체 월간 달력으로, PC는 기존처럼 오늘 선택 상태로 시작합니다.
+  const [selectedDate, setSelectedDate] = useState<string | null>(() =>
+    window.matchMedia("(max-width: 700px)").matches
+      ? null
+      : formatDate(today.getFullYear(), today.getMonth(), today.getDate()),
   );
 
   // 현재 달력의 연도입니다.
@@ -113,12 +115,15 @@ function CalendarView({
 
   // 반복 일정을 포함해 선택한 날짜에 실제 발생하는 일정만 시간순으로 표시합니다.
   const selectedDateSchedules = useMemo(() => {
+    if (!selectedDate) return [];
     const targetDate = parseDate(selectedDate);
     return getSchedulesForDate(schedules, targetDate);
   }, [schedules, selectedDate]);
 
-  const selectedDateParts = selectedDate.split("-").map(Number);
-  const selectedDateLabel = `${selectedDateParts[0]}년 ${selectedDateParts[1]}월 ${selectedDateParts[2]}일`;
+  const selectedDateParts = selectedDate?.split("-").map(Number) ?? [];
+  const selectedDateWeekday = selectedDate
+    ? WEEK_DAYS[parseDate(selectedDate).getDay()]
+    : "";
 
   // 다른 달로 이동하면 그 달이 오늘의 달인 경우 오늘을, 아니면 1일을 선택합니다.
   const moveMonth = useCallback((amount: number) => {
@@ -127,12 +132,15 @@ function CalendarView({
       nextMonth.getFullYear() === today.getFullYear() &&
       nextMonth.getMonth() === today.getMonth();
     setCurrentMonth(nextMonth);
-    setSelectedDate(formatDate(
-      nextMonth.getFullYear(),
-      nextMonth.getMonth(),
-      isTodayMonth ? today.getDate() : 1,
-    ));
-  }, [currentMonthIndex, currentYear, today]);
+    // 모바일 기본 상태처럼 선택이 없었다면 새 달에서도 전체 달력을 유지합니다.
+    if (selectedDate) {
+      setSelectedDate(formatDate(
+        nextMonth.getFullYear(),
+        nextMonth.getMonth(),
+        isTodayMonth ? today.getDate() : 1,
+      ));
+    }
+  }, [currentMonthIndex, currentYear, selectedDate, today]);
 
   // 이전 달로 이동합니다.
   const moveToPreviousMonth = useCallback(() => {
@@ -157,7 +165,7 @@ function CalendarView({
   }, [today]);
 
   return (
-    <section className="calendar">
+    <section className={`calendar ${selectedDate ? "has-selection" : ""}`}>
       {/* 달력 연도·월과 이동 버튼 영역입니다. */}
       <div className="calendar-header">
         {/* 현재 달력의 연도와 월을 먼저 표시합니다. */}
@@ -252,11 +260,15 @@ function CalendarView({
                 tabIndex={0}
                 aria-label={`${currentMonthIndex + 1}월 ${day}일 선택`}
                 aria-pressed={isSelected}
-                onClick={() => setSelectedDate(targetDateString)}
+                onClick={() => setSelectedDate((current) =>
+                  current === targetDateString ? null : targetDateString
+                )}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    setSelectedDate(targetDateString);
+                    setSelectedDate((current) =>
+                      current === targetDateString ? null : targetDateString
+                    );
                   }
                 }}
               >
@@ -317,6 +329,15 @@ function CalendarView({
                       </button>
                     ),
                   )}
+                  {dailySchedules.length > 3 && (
+                    <span className="calendar-more-count">+{dailySchedules.length - 3}</span>
+                  )}
+                </div>
+
+                <div className="calendar-dots" aria-label={`일정 ${dailySchedules.length}개`}>
+                  {dailySchedules.slice(0, 3).map((schedule) => (
+                    <span key={schedule.id} data-category={schedule.category} />
+                  ))}
                 </div>
               </div>
             );
@@ -324,37 +345,47 @@ function CalendarView({
         )}
       </div>
 
-      <section className="selected-date-panel" aria-labelledby="selected-date-title">
-        <h3 id="selected-date-title">{selectedDateLabel} 일정</h3>
-
-        {selectedDateSchedules.length === 0 ? (
-          <p className="selected-date-empty">등록된 일정이 없습니다.</p>
-        ) : (
-          <div className="selected-date-list">
-            {selectedDateSchedules.map((schedule) => (
-              <button
-                key={schedule.id}
-                type="button"
-                className={`selected-date-schedule ${schedule.completed ? "completed" : ""}`}
-                data-category={schedule.category}
-                onClick={() => onEdit(schedule.id)}
-              >
-                <strong>{schedule.time}</strong>
-                <span className="selected-date-schedule-title">{schedule.title}</span>
-                <span className="category-badge" data-category={schedule.category}>🏷 {schedule.category}</span>
-                <span className="priority-badge" data-priority={schedule.priority}>{schedule.priority}</span>
-                {schedule.repeat !== "반복 안함" && (
-                  <span className="repeat-badge" data-repeat={schedule.repeat}>🔁 {schedule.repeat}</span>
-                )}
-              </button>
-            ))}
+      {selectedDate && (
+        <section className="selected-date-panel" aria-labelledby="selected-date-title">
+          <div className="selected-date-panel-header">
+            <h3 id="selected-date-title">
+              {selectedDateParts[1]}.{selectedDateParts[2]}. {selectedDateWeekday}
+            </h3>
+            <div>
+              <span>일정 {selectedDateSchedules.length}개</span>
+              <button type="button" onClick={() => setSelectedDate(null)} aria-label="선택 날짜 접기">접기</button>
+            </div>
           </div>
-        )}
 
-        <button type="button" className="selected-date-add-btn" onClick={() => onAddForDate(selectedDate)}>
-          + {selectedDateParts[1]}월 {selectedDateParts[2]}일 일정 등록
-        </button>
-      </section>
+          {selectedDateSchedules.length === 0 ? (
+            <p className="selected-date-empty">등록된 일정이 없습니다.</p>
+          ) : (
+            <div className="selected-date-list">
+              {selectedDateSchedules.map((schedule) => (
+                <button
+                  key={schedule.id}
+                  type="button"
+                  className={`selected-date-schedule ${schedule.completed ? "completed" : ""}`}
+                  data-category={schedule.category}
+                  onClick={() => onEdit(schedule.id)}
+                >
+                  <strong>{schedule.time}</strong>
+                  <span className="selected-date-schedule-title">{schedule.title}</span>
+                  <span className="selected-date-schedule-meta">
+                    {schedule.category} · {schedule.priority}
+                    {schedule.repeat !== "반복 안함" && ` · ${schedule.repeat}`}
+                    {schedule.notificationEnabled && " · 🔔"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button type="button" className="selected-date-add-btn" onClick={() => onAddForDate(selectedDate)}>
+            + {selectedDateParts[1]}월 {selectedDateParts[2]}일 일정 등록
+          </button>
+        </section>
+      )}
     </section>
   );
 }

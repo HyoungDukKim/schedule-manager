@@ -233,8 +233,109 @@
 
   .calendar-cell {
     min-width: 0;
-    min-height: 78px;
-    padding: 4px 3px;
+    min-height: 66px;
+    padding: 4px 3px 3px;
+    border-right: 0;
+    border-bottom: 0;
+    transition: min-height 180ms ease, padding 180ms ease;
+  }
+
+  /* 모바일은 날짜별 세로선을 제거하고 주 사이에만 얇은 선을 표시합니다. */
+  .calendar-cell:nth-child(n + 8) {
+    border-top: 1px solid #edf1f5;
+  }
+
+  .calendar-date-header {
+    margin-bottom: 2px;
+  }
+
+  /* 기본 월간 상태에서는 최대 3개의 일정 제목을 짧은 한 줄로 표시합니다. */
+  .calendar-schedule {
+    min-height: 0;
+    padding: 1px 2px;
+    border-radius: 3px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .calendar-more-count {
+    display: block;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: right;
+  }
+
+  .calendar-dots {
+    display: none;
+  }
+
+  /* 날짜 선택 후에는 달력을 압축하고 일정 제목 대신 최대 3개 점을 표시합니다. */
+  .calendar.has-selection .calendar-cell {
+    min-height: 43px;
+    padding: 3px 2px;
+  }
+
+  .calendar.has-selection .calendar-date-header {
+    margin-bottom: 1px;
+  }
+
+  .calendar.has-selection .calendar-schedules {
+    display: none;
+  }
+
+  .calendar.has-selection .calendar-dots {
+    display: flex;
+    min-height: 7px;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .calendar-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #94a3b8;
+  }
+
+  .calendar-dots span[data-category="업무"] { background: #3b82f6; }
+  .calendar-dots span[data-category="개인"] { background: #a855f7; }
+  .calendar-dots span[data-category="운동"] { background: #22c55e; }
+  .calendar-dots span[data-category="공부"] { background: #f97316; }
+  .calendar-dots span[data-category="기타"] { background: #64748b; }
+
+  .selected-date-panel {
+    padding: 12px 10px 14px;
+  }
+
+  .selected-date-panel-header {
+    margin-bottom: 7px;
+  }
+
+  .selected-date-panel-header h3 {
+    font-size: 17px;
+  }
+
+  .selected-date-schedule {
+    gap: 2px 8px;
+    padding: 8px 4px;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .selected-date-add-btn {
+    margin-top: 10px;
+  }
+
+  :root[data-theme="dark"] .calendar-cell:nth-child(n + 8) {
+    border-top-color: #273449;
+  }
+
+  :root[data-theme="dark"] .selected-date-schedule {
+    background: transparent;
   }
 
   .calendar-date-header {
@@ -255,12 +356,17 @@
   }
 
   .calendar-schedules {
-    gap: 2px;
+    gap: 1px;
   }
 
   .calendar-schedule {
-    padding: 3px 2px;
-    font-size: 8px;
+    padding: 1px 2px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .calendar:not(.has-selection) .calendar-schedule:nth-child(n + 4) {
+    display: none;
   }
 
   .calendar-schedule-time,
@@ -290,8 +396,12 @@
   }
 
   .calendar-cell {
-    min-height: 70px;
+    min-height: 62px;
     padding: 3px 2px;
+  }
+
+  .calendar.has-selection .calendar-cell {
+    min-height: 41px;
   }
 
   .calendar-weekday {
