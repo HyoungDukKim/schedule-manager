@@ -1,6 +1,6 @@
 // React의 State 기능을 가져옵니다.
 // 현재 달력에 표시할 연도와 월을 관리할 때 사용합니다.
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 // 일정 데이터 타입을 가져옵니다.
 import type { Schedule } from "../../types/schedule";
@@ -57,6 +57,9 @@ function CalendarView({
       : formatDate(today.getFullYear(), today.getMonth(), today.getDate()),
   );
 
+  // 모바일에서 년·월 선택 Bottom Sheet가 열려 있는지 관리합니다.
+  const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+
   // 현재 달력의 연도입니다.
   const currentYear =
     currentMonth.getFullYear();
@@ -65,6 +68,12 @@ function CalendarView({
   // JavaScript에서 월은 0부터 시작합니다.
   const currentMonthIndex =
     currentMonth.getMonth();
+
+  // 너무 좁지 않으면서도 빠르게 선택할 수 있도록 현재 연도 기준 앞뒤 10년을 제공합니다.
+  const selectableYears = useMemo(
+    () => Array.from({ length: 21 }, (_, index) => today.getFullYear() - 10 + index),
+    [today],
+  );
 
   // 현재 달의 1일이 무슨 요일인지 확인합니다.
   //
@@ -164,15 +173,47 @@ function CalendarView({
     setSelectedDate(formatDate(today.getFullYear(), today.getMonth(), today.getDate()));
   }, [today]);
 
+  // 년 또는 월을 바꾸면 해당 월의 달력으로 즉시 이동하고 날짜 선택은 해제합니다.
+  const moveToSelectedMonth = useCallback((year: number, monthIndex: number) => {
+    setCurrentMonth(new Date(year, monthIndex, 1));
+    setSelectedDate(null);
+  }, []);
+
+  // Bottom Sheet가 열려 있을 때 Escape 키로도 닫을 수 있게 합니다.
+  useEffect(() => {
+    if (!isMonthPickerOpen) return;
+
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMonthPickerOpen(false);
+    };
+
+    document.addEventListener("keydown", closeWithEscape);
+    return () => document.removeEventListener("keydown", closeWithEscape);
+  }, [isMonthPickerOpen]);
+
   return (
     <section className={`calendar ${selectedDate ? "has-selection" : ""}`}>
       {/* 달력 연도·월과 이동 버튼 영역입니다. */}
       <div className="calendar-header">
-        {/* 현재 달력의 연도와 월을 먼저 표시합니다. */}
-        <h3>
-          {currentYear}년{" "}
-          {currentMonthIndex + 1}월
-        </h3>
+        <div className="calendar-month-heading">
+          {/* PC에서는 기존 년·월 제목을 그대로 표시합니다. */}
+          <h3 className="desktop-calendar-month">
+            {currentYear}년{" "}
+            {currentMonthIndex + 1}월
+          </h3>
+
+          {/* 모바일에서는 년·월을 누르면 원하는 달을 고를 수 있습니다. */}
+          <button
+            type="button"
+            className="mobile-calendar-month-trigger"
+            aria-haspopup="dialog"
+            aria-expanded={isMonthPickerOpen}
+            onClick={() => setIsMonthPickerOpen(true)}
+          >
+            {currentYear}. {currentMonthIndex + 1}.
+            <span aria-hidden="true">▼</span>
+          </button>
+        </div>
 
         {/* 이전 달, 오늘, 다음 달 이동 버튼입니다. */}
         <div className="calendar-navigation">
@@ -201,6 +242,59 @@ function CalendarView({
           </button>
         </div>
       </div>
+
+      {isMonthPickerOpen && (
+        <div
+          className="mobile-month-picker-backdrop"
+          role="presentation"
+          onClick={() => setIsMonthPickerOpen(false)}
+        >
+          <section
+            className="mobile-month-picker"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="month-picker-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mobile-month-picker-header">
+              <h3 id="month-picker-title">년·월 이동</h3>
+              <button type="button" onClick={() => setIsMonthPickerOpen(false)} aria-label="년·월 선택 닫기">
+                ×
+              </button>
+            </div>
+
+            <div className="mobile-month-picker-fields">
+              <label>
+                년
+                <select
+                  value={currentYear}
+                  onChange={(event) => moveToSelectedMonth(Number(event.target.value), currentMonthIndex)}
+                >
+                  {selectableYears.map((year) => (
+                    <option key={year} value={year}>{year}년</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                월
+                <select
+                  value={currentMonthIndex}
+                  onChange={(event) => moveToSelectedMonth(currentYear, Number(event.target.value))}
+                >
+                  {Array.from({ length: 12 }, (_, monthIndex) => (
+                    <option key={monthIndex} value={monthIndex}>{monthIndex + 1}월</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <button type="button" className="mobile-month-picker-done" onClick={() => setIsMonthPickerOpen(false)}>
+              완료
+            </button>
+          </section>
+        </div>
+      )}
 
       {/* 요일 제목입니다. */}
       <div className="calendar-weekdays">

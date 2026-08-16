@@ -5,9 +5,17 @@ type Props = {
   user: User;
   theme: Theme;
   onToggleTheme: () => void;
+  onSwitchAccount: () => void | Promise<void>;
+  onLogout: () => void | Promise<void>;
 };
 
-function SettingsView({ user, theme, onToggleTheme }: Props) {
+function SettingsView({
+  user,
+  theme,
+  onToggleTheme,
+  onSwitchAccount,
+  onLogout,
+}: Props) {
   const userLabel = user.displayName ?? user.email ?? "사용자";
 
   return (
@@ -31,11 +39,22 @@ function SettingsView({ user, theme, onToggleTheme }: Props) {
       </section>
 
       <section className="settings-card" aria-labelledby="account-settings-title">
-        <div>
+        <div className="settings-account-info">
           <h3 id="account-settings-title">계정</h3>
+          {user.photoURL && (
+            <img
+              className="settings-account-image"
+              src={user.photoURL}
+              alt=""
+              referrerPolicy="no-referrer"
+            />
+          )}
           <p className="settings-account-name">{userLabel}</p>
           {user.email && user.email !== userLabel && <p>{user.email}</p>}
-          <p>계정 변경과 로그아웃은 상단 프로필 메뉴에서 이용할 수 있습니다.</p>
+        </div>
+        <div className="settings-account-actions">
+          <button type="button" onClick={() => void onSwitchAccount()}>계정 변경</button>
+          <button type="button" className="settings-logout-btn" onClick={() => void onLogout()}>로그아웃</button>
         </div>
       </section>
     </div>

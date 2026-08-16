@@ -168,6 +168,52 @@
   font-weight: 700;
 }
 
+.settings-account-info {
+  min-width: 0;
+}
+
+.settings-account-image {
+  width: 44px;
+  height: 44px;
+  margin-top: 12px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.settings-account-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.settings-account-actions button {
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.settings-account-actions button:hover,
+.settings-account-actions button:focus-visible {
+  outline: none;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.settings-account-actions .settings-logout-btn {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* PC에서는 Header의 일정 추가 버튼을 사용하므로 모바일 FAB를 숨깁니다. */
+.mobile-schedule-fab {
+  display: none;
+}
+
 :root[data-theme="dark"] .settings-card {
   border-color: #475569;
   background: #1e293b;
@@ -179,6 +225,17 @@
 
 :root[data-theme="dark"] .settings-account-name {
   color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] .settings-account-actions button {
+  border-color: #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .settings-account-actions .settings-logout-btn {
+  border-color: #7f1d1d;
+  color: #fca5a5;
 }
 
 @media (max-width: 700px) {
@@ -670,6 +727,12 @@
 .calendar-header h3 {
   margin: 0;
   font-size: 21px;
+}
+
+/* 년·월 직접 이동 UI는 모바일에서만 표시합니다. */
+.mobile-calendar-month-trigger,
+.mobile-month-picker-backdrop {
+  display: none;
 }
 
 /* 이전 달·오늘·다음 달 버튼 영역입니다. */

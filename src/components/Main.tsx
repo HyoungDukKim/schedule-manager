@@ -132,7 +132,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
       <Header user={user} onSwitchAccount={onSwitchAccount} onLogout={onLogout} onAddSchedule={openAddForm} />
       <AppNavigation currentView={appView} onChange={setAppView} />
       <div className="container app-shell">
-        <main className="main">
+        <main className={`main app-view-${appView}`}>
           <div className="main-header">
             <div>
               <h2>{currentCopy.title}</h2>
@@ -224,9 +224,27 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
           </div>
 
           {appView === "statistics" && <StatisticsView schedules={filteredSchedules} />}
-          {appView === "settings" && <SettingsView user={user} theme={theme} onToggleTheme={toggleTheme} />}
+          {appView === "settings" && (
+            <SettingsView
+              user={user}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onSwitchAccount={onSwitchAccount}
+              onLogout={onLogout}
+            />
+          )}
         </main>
       </div>
+
+      {/* 모바일에서는 어느 메뉴에서나 기존 일정 폼을 여는 고정 + 버튼을 사용합니다. */}
+      <button
+        type="button"
+        className="mobile-schedule-fab"
+        onClick={openAddForm}
+        aria-label="일정 추가"
+      >
+        +
+      </button>
     </>
   );
 }

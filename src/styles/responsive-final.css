@@ -136,8 +136,68 @@
     padding-bottom: calc(66px + env(safe-area-inset-bottom));
   }
 
+  /* 모바일에서는 데스크톱 Header를 제거하고 하단 내비게이션과 FAB를 사용합니다. */
+  .header {
+    display: none;
+  }
+
   .main {
     padding: 18px 14px;
+  }
+
+  /* 달력 화면에서는 별도 화면 제목을 숨겨 년·월이 가장 먼저 보이게 합니다. */
+  .main.app-view-calendar {
+    padding-top: 4px;
+  }
+
+  .main.app-view-calendar > .main-header {
+    display: none;
+  }
+
+  .container {
+    min-height: calc(100vh - 66px - env(safe-area-inset-bottom));
+  }
+
+  .settings-account-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .settings-account-actions button {
+    width: 100%;
+  }
+
+  /* 모든 모바일 메뉴에서 기존 새 일정 폼을 여는 고정 버튼입니다. */
+  .mobile-schedule-fab {
+    position: fixed;
+    z-index: 85;
+    right: 18px;
+    bottom: calc(74px + env(safe-area-inset-bottom));
+    display: grid;
+    width: 52px;
+    height: 52px;
+    min-height: 52px;
+    place-items: center;
+    padding: 0 0 4px;
+    border: 0;
+    border-radius: 50%;
+    background: #2563eb;
+    box-shadow: 0 8px 20px rgb(37 99 235 / 32%);
+    color: #fff;
+    cursor: pointer;
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  .mobile-schedule-fab:focus-visible {
+    outline: 3px solid rgb(147 197 253 / 70%);
+    outline-offset: 2px;
+  }
+
+  :root[data-theme="dark"] .mobile-schedule-fab {
+    background: #3b82f6;
+    box-shadow: 0 8px 20px rgb(0 0 0 / 38%);
   }
 
   .main-header {
@@ -183,28 +243,55 @@
     width: 100%;
   }
 
-  /* 제목을 위에, 이동 버튼을 아래에 표시합니다. */
+  /* 이전·년월·오늘·다음 버튼을 한 줄로 배치해 달력을 화면 위쪽으로 올립니다. */
   .calendar-header {
-    display: flex;
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-    padding: 14px;
-  }
-
-  .calendar-header h3 {
-    width: 100%;
-    margin: 0;
-    font-size: 19px;
-    text-align: center;
-  }
-
-  /* 이전 달 / 오늘 / 다음 달 버튼을 화면 너비 안에 배치합니다. */
-  .calendar-navigation {
+    position: relative;
     display: grid;
+    align-items: center;
+    grid-template-columns: 40px minmax(0, 1fr) 48px 40px;
+    gap: 5px;
+    padding: 7px 8px;
+  }
+
+  .calendar-month-heading {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .desktop-calendar-month {
+    display: none;
+  }
+
+  .mobile-calendar-month-trigger {
+    display: flex;
     width: 100%;
-    grid-template-columns: 46px minmax(0, 1fr) 46px;
-    gap: 8px;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #1e293b;
+    cursor: pointer;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .mobile-calendar-month-trigger span {
+    color: #64748b;
+    font-size: 9px;
+  }
+
+  .mobile-calendar-month-trigger:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 1px;
+  }
+
+  /* 이동 버튼은 같은 그리드에 배치해 별도의 두 번째 행을 만들지 않습니다. */
+  .calendar-navigation {
+    display: contents;
   }
 
   .calendar-navigation button,
@@ -213,8 +300,127 @@
     width: 100%;
     min-width: 0;
     max-width: none;
-    height: 40px;
+    height: 36px;
     padding: 0 4px;
+  }
+
+  .calendar-navigation button:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .calendar-navigation .today-btn {
+    grid-column: 3;
+    grid-row: 1;
+    font-size: 12px;
+  }
+
+  .calendar-navigation button:last-child {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  /* 년·월 선택은 엄지로 조작하기 쉬운 모바일 Bottom Sheet로 표시합니다. */
+  .mobile-month-picker-backdrop {
+    position: fixed;
+    z-index: 120;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+    background: rgb(15 23 42 / 45%);
+  }
+
+  .mobile-month-picker {
+    width: min(100%, 430px);
+    padding: 18px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 -8px 30px rgb(15 23 42 / 22%);
+  }
+
+  .mobile-month-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .mobile-month-picker-header h3 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .mobile-month-picker-header button {
+    width: 36px;
+    min-height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    font-size: 22px;
+  }
+
+  .mobile-month-picker-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mobile-month-picker-fields label {
+    display: grid;
+    gap: 6px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .mobile-month-picker-fields select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #fff;
+    color: #1e293b;
+    font-size: 16px;
+  }
+
+  .mobile-month-picker-done {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 800;
+  }
+
+  :root[data-theme="dark"] .mobile-calendar-month-trigger {
+    color: #f8fafc;
+  }
+
+  :root[data-theme="dark"] .mobile-month-picker {
+    background: #1e293b;
+  }
+
+  :root[data-theme="dark"] .mobile-month-picker-header button {
+    background: #334155;
+    color: #e2e8f0;
+  }
+
+  :root[data-theme="dark"] .mobile-month-picker-fields label {
+    color: #cbd5e1;
+  }
+
+  :root[data-theme="dark"] .mobile-month-picker-fields select {
+    border-color: #475569;
+    background: #0f172a;
+    color: #f8fafc;
   }
 
   /* 7개 요일을 모바일 화면 안에 모두 맞춥니다. */
@@ -386,13 +592,21 @@
     padding: 14px 10px;
   }
 
+  .main.app-view-calendar {
+    padding-top: 2px;
+  }
+
   .calendar-header {
-    padding: 12px 10px;
+    grid-template-columns: 36px minmax(0, 1fr) 44px 36px;
+    padding: 5px 6px;
   }
 
   .calendar-navigation {
-    grid-template-columns: 42px minmax(0, 1fr) 42px;
-    gap: 6px;
+    display: contents;
+  }
+
+  .mobile-calendar-month-trigger {
+    font-size: 17px;
   }
 
   .calendar-cell {
