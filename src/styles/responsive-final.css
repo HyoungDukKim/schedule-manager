@@ -455,7 +455,7 @@
     margin-bottom: 2px;
   }
 
-  /* 기본 월간 상태에서는 최대 3개의 일정 제목을 짧은 한 줄로 표시합니다. */
+  /* 기본 월간 상태에서는 최대 2개의 일정 제목을 짧은 한 줄로 표시합니다. */
   .calendar-schedule {
     min-height: 0;
     padding: 1px 2px;
@@ -512,6 +512,18 @@
   .calendar-dots span[data-category="공부"] { background: #f97316; }
   .calendar-dots span[data-category="기타"] { background: #64748b; }
 
+  /* 점이 3개를 넘으면 작은 +N으로 추가 일정이 있음을 알립니다. */
+  .calendar-dots .calendar-dot-more {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
+    color: #64748b;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
   .selected-date-panel {
     padding: 12px 10px 14px;
   }
@@ -524,6 +536,28 @@
     font-size: 17px;
   }
 
+  .selected-date-title-desktop {
+    display: none;
+  }
+
+  .selected-date-title-mobile {
+    display: inline;
+  }
+
+  .selected-date-panel-actions > span {
+    display: none;
+  }
+
+  .selected-date-panel-header .selected-date-quick-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 800;
+  }
+
   .selected-date-schedule {
     gap: 2px 8px;
     padding: 8px 4px;
@@ -533,7 +567,13 @@
   }
 
   .selected-date-add-btn {
-    margin-top: 10px;
+    display: none;
+  }
+
+  :root[data-theme="dark"] .selected-date-panel-header .selected-date-quick-add {
+    border-color: #1d4ed8;
+    background: #1e3a5f;
+    color: #bfdbfe;
   }
 
   :root[data-theme="dark"] .calendar-cell:nth-child(n + 8) {
@@ -571,7 +611,7 @@
     line-height: 1.2;
   }
 
-  .calendar:not(.has-selection) .calendar-schedule:nth-child(n + 4) {
+  .calendar:not(.has-selection) .calendar-schedule:nth-child(n + 3) {
     display: none;
   }
 

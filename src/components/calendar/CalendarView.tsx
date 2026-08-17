@@ -21,12 +21,20 @@ type Props = {
   onAddForDate: (date: string) => void;
 };
 
-import { WEEK_DAYS } from "../../constants/schedule";
+import { SCHEDULE_NOTIFICATION_OPTIONS, WEEK_DAYS } from "../../constants/schedule";
 import { formatDate, parseDate } from "../../utils/dateUtils";
 import {
   getSchedulesForDate,
   isDateInScheduleRange,
 } from "../../utils/scheduleUtils";
+
+// 상세 목록에서는 알림 아이콘보다 실제 알림 시점을 우선 표시합니다.
+const getNotificationLabel = (schedule: Schedule) => {
+  if (!schedule.notificationEnabled) return null;
+  return SCHEDULE_NOTIFICATION_OPTIONS.find(
+    (option) => option.value === schedule.notificationMinutesBefore,
+  )?.label ?? "알림";
+};
 
 function CalendarView({
   schedules,
@@ -423,8 +431,8 @@ function CalendarView({
                       </button>
                     ),
                   )}
-                  {dailySchedules.length > 3 && (
-                    <span className="calendar-more-count">+{dailySchedules.length - 3}</span>
+                  {dailySchedules.length > 2 && (
+                    <span className="calendar-more-count">+{dailySchedules.length - 2}</span>
                   )}
                 </div>
 
@@ -432,6 +440,9 @@ function CalendarView({
                   {dailySchedules.slice(0, 3).map((schedule) => (
                     <span key={schedule.id} data-category={schedule.category} />
                   ))}
+                  {dailySchedules.length > 3 && (
+                    <span className="calendar-dot-more">+{dailySchedules.length - 3}</span>
+                  )}
                 </div>
               </div>
             );
@@ -443,10 +454,22 @@ function CalendarView({
         <section className="selected-date-panel" aria-labelledby="selected-date-title">
           <div className="selected-date-panel-header">
             <h3 id="selected-date-title">
-              {selectedDateParts[1]}.{selectedDateParts[2]}. {selectedDateWeekday}
+              <span className="selected-date-title-desktop">
+                {selectedDateParts[1]}.{selectedDateParts[2]}. {selectedDateWeekday}
+              </span>
+              <span className="selected-date-title-mobile">
+                {selectedDateParts[1]}월 {selectedDateParts[2]}일 {selectedDateWeekday}요일
+              </span>
             </h3>
-            <div>
+            <div className="selected-date-panel-actions">
               <span>일정 {selectedDateSchedules.length}개</span>
+              <button
+                type="button"
+                className="selected-date-quick-add"
+                onClick={() => onAddForDate(selectedDate)}
+              >
+                + 일정
+              </button>
               <button type="button" onClick={() => setSelectedDate(null)} aria-label="선택 날짜 접기">접기</button>
             </div>
           </div>
@@ -455,23 +478,26 @@ function CalendarView({
             <p className="selected-date-empty">등록된 일정이 없습니다.</p>
           ) : (
             <div className="selected-date-list">
-              {selectedDateSchedules.map((schedule) => (
-                <button
-                  key={schedule.id}
-                  type="button"
-                  className={`selected-date-schedule ${schedule.completed ? "completed" : ""}`}
-                  data-category={schedule.category}
-                  onClick={() => onEdit(schedule.id)}
-                >
-                  <strong>{schedule.time}</strong>
-                  <span className="selected-date-schedule-title">{schedule.title}</span>
-                  <span className="selected-date-schedule-meta">
-                    {schedule.category} · {schedule.priority}
-                    {schedule.repeat !== "반복 안함" && ` · ${schedule.repeat}`}
-                    {schedule.notificationEnabled && " · 🔔"}
-                  </span>
-                </button>
-              ))}
+              {selectedDateSchedules.map((schedule) => {
+                const notificationLabel = getNotificationLabel(schedule);
+                return (
+                  <button
+                    key={schedule.id}
+                    type="button"
+                    className={`selected-date-schedule ${schedule.completed ? "completed" : ""}`}
+                    data-category={schedule.category}
+                    onClick={() => onEdit(schedule.id)}
+                  >
+                    <strong>{schedule.time}</strong>
+                    <span className="selected-date-schedule-title">{schedule.title}</span>
+                    <span className="selected-date-schedule-meta">
+                      {schedule.category} · {schedule.priority}
+                      {schedule.repeat !== "반복 안함" && ` · ${schedule.repeat}`}
+                      {notificationLabel && ` · ${notificationLabel}`}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
 

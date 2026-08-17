@@ -980,6 +980,12 @@
   font-size: 18px;
 }
 
+/* 모바일 전용 날짜 제목과 빠른 추가 버튼은 PC에서 숨겨 기존 구성을 유지합니다. */
+.selected-date-title-mobile,
+.selected-date-quick-add {
+  display: none;
+}
+
 .selected-date-panel-header {
   display: flex;
   align-items: center;
