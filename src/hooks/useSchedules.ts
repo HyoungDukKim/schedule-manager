@@ -99,9 +99,13 @@ export const useSchedules = (
     if (selectedSchedule) setEditingSchedule(selectedSchedule);
   }, []);
 
-  const saveSchedule = useCallback(async (values: ScheduleFormValues) => {
+  const saveSchedule = useCallback(async (
+    values: ScheduleFormValues,
+    forceCreate = false,
+  ) => {
     try {
-      if (editingSchedule) {
+      // AI 미리보기의 새 일정 입력은 이전 편집 상태가 남아 있어도 기존 일정을 덮어쓰지 않습니다.
+      if (editingSchedule && !forceCreate) {
         await updateSchedule(userId, editingSchedule.id, values);
         setSchedules((previous) =>
           previous.map((schedule) =>

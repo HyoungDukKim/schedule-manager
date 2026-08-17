@@ -31,6 +31,9 @@ export const convertAiDraftToScheduleFormValues = (
   if (draft.date === null) errors.push("날짜를 입력해 주세요.");
   if (draft.time === null) errors.push("시간을 입력해 주세요.");
   if (draft.needsClarification) errors.push("확인이 필요한 항목을 먼저 입력해 주세요.");
+  // AI 응답 상태가 서로 모순되더라도 누락 항목이나 확인 질문이 남아 있으면 바로 저장하지 않습니다.
+  if (draft.missingFields.length > 0) errors.push("누락된 항목을 먼저 입력해 주세요.");
+  if (draft.clarificationQuestions.length > 0) errors.push("확인 질문에 답한 뒤 저장해 주세요.");
   if (errors.length > 0 || draft.title === null || draft.date === null || draft.time === null) {
     return { success: false, errors };
   }

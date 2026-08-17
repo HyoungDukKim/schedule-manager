@@ -3,7 +3,9 @@ import { SCHEDULE_NOTIFICATION_OPTIONS } from "../../constants/schedule";
 
 type Props = {
   draft: AiScheduleDraft;
-  onApply: (draft: AiScheduleDraft) => void;
+  canSaveDirectly: boolean;
+  isSaving: boolean;
+  onPrimaryAction: (draft: AiScheduleDraft) => void;
   onCancel: () => void;
 };
 
@@ -16,7 +18,13 @@ const getNotificationText = (draft: AiScheduleDraft) => {
   )?.label ?? "확인 필요";
 };
 
-function AiSchedulePreview({ draft, onApply, onCancel }: Props) {
+function AiSchedulePreview({
+  draft,
+  canSaveDirectly,
+  isSaving,
+  onPrimaryAction,
+  onCancel,
+}: Props) {
   const rows = [
     ["제목", draft.title ?? "확인 필요"],
     ["날짜", draft.date ?? "확인 필요"],
@@ -58,13 +66,15 @@ function AiSchedulePreview({ draft, onApply, onCancel }: Props) {
       )}
 
       <p className="ai-preview-help">
-        적용 후 기존 일정 입력 폼에서 내용을 수정하고 최종 저장해 주세요.
+        {canSaveDirectly
+          ? "내용을 확인한 뒤 입력하면 기존 일정 저장 흐름으로 안전하게 저장됩니다."
+          : "확인이 필요한 내용을 기존 일정 입력 폼에서 수정한 뒤 저장해 주세요."}
       </p>
       <div className="ai-preview-actions">
-        <button type="button" onClick={() => onApply(draft)}>
-          입력 폼에 적용
+        <button type="button" disabled={isSaving} onClick={() => onPrimaryAction(draft)}>
+          {isSaving ? "입력 중..." : canSaveDirectly ? "입력" : "수정하기"}
         </button>
-        <button type="button" onClick={onCancel}>취소</button>
+        <button type="button" disabled={isSaving} onClick={onCancel}>취소</button>
       </div>
     </div>
   );

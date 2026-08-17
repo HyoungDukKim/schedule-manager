@@ -107,14 +107,29 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
     cancelEditing();
   }, [cancelEditing]);
 
-  const handleSave = useCallback(async (values: ScheduleFormValues) => {
-    const saved = await saveSchedule(values);
+  const handleSave = useCallback(async (
+    values: ScheduleFormValues,
+    forceCreate = false,
+  ) => {
+    const saved = await saveSchedule(values, forceCreate);
     if (saved) {
       setShowForm(false);
       setAiFormDraft(null);
       setAddFormDate(null);
     }
+    return saved;
   }, [saveSchedule]);
+
+  // 완전한 AI Draft도 반드시 Main의 기존 저장 흐름을 거쳐 새 일정으로 저장합니다.
+  const handleAiSave = useCallback(
+    (values: ScheduleFormValues) => handleSave(values, true),
+    [handleSave],
+  );
+
+  // 기존 ScheduleForm은 저장 성공 여부를 사용하지 않으므로 기존 Promise<void> 계약을 유지합니다.
+  const handleFormSave = useCallback(async (values: ScheduleFormValues) => {
+    await handleSave(values);
+  }, [handleSave]);
 
   const applyAiDraft = useCallback((draft: AiScheduleDraft) => {
     cancelEditing();
@@ -145,7 +160,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
           {showForm && (
             <ScheduleForm
               key={formVersion}
-              onSave={handleSave}
+              onSave={handleFormSave}
               onCancel={cancelForm}
               initialTitle={aiFormDraft ? aiFormDraft.title ?? "" : editingSchedule?.title ?? ""}
               initialDate={aiFormDraft ? aiFormDraft.date ?? "" : addFormDate ?? editingSchedule?.date ?? getToday()}
@@ -217,7 +232,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
           )}
 
           <div className="app-view-panel" hidden={appView !== "ai"}>
-            <AiScheduleInput onApply={applyAiDraft} />
+            <AiScheduleInput onApply={applyAiDraft} onSave={handleAiSave} />
           </div>
           <div className="app-view-panel" hidden={appView !== "backup"}>
             <BackupRestore schedules={schedules} onImport={importSchedules} />
