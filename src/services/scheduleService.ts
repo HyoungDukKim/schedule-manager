@@ -11,10 +11,9 @@ import {
 import { db } from "../firebase";
 import type { Schedule, ScheduleData } from "../types/schedule";
 import {
-  isScheduleCategory,
-  isSchedulePriority,
-  isScheduleRepeat,
-} from "../utils/scheduleUtils";
+  validateScheduleData,
+  validateScheduleFormValues,
+} from "../../shared/scheduleContract.js";
 
 const COLLECTION_NAME = "schedules";
 
@@ -24,47 +23,36 @@ const getSchedulesCollection = (userId: string) =>
 const getScheduleDocument = (userId: string, scheduleId: string) =>
   doc(db, "users", userId, COLLECTION_NAME, scheduleId);
 
-// Firestore의 선택적 반복 종료일이 YYYY-MM-DD 형식인지 확인합니다.
-const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-const NOTIFICATION_MINUTES = [0, 5, 10, 30, 60] as const;
+export class ScheduleDataValidationError extends Error {
+  constructor() {
+    super("Schedule data does not match the application contract.");
+    this.name = "ScheduleDataValidationError";
+  }
+}
 
-// Firestore에서 읽은 값이 앱이 허용하는 알림 시간인지 확인합니다.
-const isNotificationMinutes = (value: unknown) =>
-  typeof value === "number" &&
-  NOTIFICATION_MINUTES.includes(value as (typeof NOTIFICATION_MINUTES)[number]);
-
-const isScheduleData = (value: unknown): value is ScheduleData => {
-  if (typeof value !== "object" || value === null) return false;
-
-  const schedule = value as Record<string, unknown>;
-  return (
-    typeof schedule.title === "string" &&
-    typeof schedule.completed === "boolean" &&
-    typeof schedule.date === "string" &&
-    typeof schedule.time === "string" &&
-    isScheduleCategory(schedule.category) &&
-    isSchedulePriority(schedule.priority) &&
-    isScheduleRepeat(schedule.repeat) &&
-    (schedule.repeatEndDate === undefined ||
-      (typeof schedule.repeatEndDate === "string" &&
-        DATE_PATTERN.test(schedule.repeatEndDate))) &&
-    (schedule.notificationEnabled === undefined ||
-      typeof schedule.notificationEnabled === "boolean") &&
-    (schedule.notificationMinutesBefore === undefined ||
-      isNotificationMinutes(schedule.notificationMinutesBefore)) &&
-    (schedule.notificationEnabled !== true ||
-      isNotificationMinutes(schedule.notificationMinutesBefore))
-  );
+export type ScheduleLoadResult = {
+  schedules: Schedule[];
+  invalidCount: number;
 };
 
 // 일정 목록 조회
-export const getSchedules = async (userId: string): Promise<Schedule[]> => {
+export const getSchedules = async (userId: string): Promise<ScheduleLoadResult> => {
   const snapshot = await getDocs(getSchedulesCollection(userId));
+  const schedules: Schedule[] = [];
+  let invalidCount = 0;
 
-  return snapshot.docs.flatMap((document): Schedule[] => {
+  snapshot.docs.forEach((document) => {
     const data: unknown = document.data();
-    return isScheduleData(data) ? [{ id: document.id, ...data }] : [];
+    const validation = validateScheduleData(data);
+    if (validation.success) {
+      schedules.push({ id: document.id, ...validation.data });
+    } else {
+      // 문서 내용이나 ID는 노출하지 않고 누락 개수만 상위 Hook에 전달합니다.
+      invalidCount += 1;
+    }
   });
+
+  return { schedules, invalidCount };
 };
 
 // 일정 추가
@@ -72,9 +60,11 @@ export const addSchedule = async (
   userId: string,
   schedule: ScheduleData,
 ): Promise<string> => {
+  const validation = validateScheduleData(schedule);
+  if (!validation.success) throw new ScheduleDataValidationError();
   const documentRef = await addDoc(
     getSchedulesCollection(userId),
-    schedule
+    validation.data,
   );
 
   return documentRef.id;
@@ -87,10 +77,15 @@ export const addSchedules = async (
 ): Promise<Schedule[]> => {
   const importedSchedules: Schedule[] = [];
   const collectionReference = getSchedulesCollection(userId);
+  const normalizedSchedules = schedules.map((schedule) => {
+    const validation = validateScheduleData(schedule);
+    if (!validation.success) throw new ScheduleDataValidationError();
+    return validation.data;
+  });
 
   // Firestore batch는 최대 500개 쓰기를 지원하므로 안전하게 나눠 저장합니다.
-  for (let start = 0; start < schedules.length; start += 500) {
-    const chunk = schedules.slice(start, start + 500);
+  for (let start = 0; start < normalizedSchedules.length; start += 500) {
+    const chunk = normalizedSchedules.slice(start, start + 500);
     const batch = writeBatch(db);
     const chunkWithIds = chunk.map((schedule) => {
       const documentReference = doc(collectionReference);
@@ -111,16 +106,35 @@ export const updateSchedule = async (
   id: string,
   schedule: Partial<ScheduleData>,
 ): Promise<void> => {
-  const updateData: Record<string, unknown> = { ...schedule };
+  const isFullFormUpdate = "title" in schedule;
+  let normalizedUpdate: Record<string, unknown>;
+
+  if (isFullFormUpdate) {
+    const validation = validateScheduleFormValues(schedule);
+    if (!validation.success) throw new ScheduleDataValidationError();
+    normalizedUpdate = { ...validation.data };
+  } else {
+    const updateKeys = Object.keys(schedule);
+    if (
+      updateKeys.length !== 1 ||
+      updateKeys[0] !== "completed" ||
+      typeof schedule.completed !== "boolean"
+    ) {
+      throw new ScheduleDataValidationError();
+    }
+    normalizedUpdate = { completed: schedule.completed };
+  }
+
+  const updateData: Record<string, unknown> = { ...normalizedUpdate };
 
   // 폼 전체 수정에서 종료일을 선택하지 않았다면 과거 종료일 필드를 제거합니다.
   // 완료 체크처럼 repeat를 보내지 않는 부분 수정에서는 기존 종료일을 유지합니다.
-  if ("repeat" in schedule && !schedule.repeatEndDate) {
+  if (isFullFormUpdate && !normalizedUpdate.repeatEndDate) {
     updateData.repeatEndDate = deleteField();
   }
 
   // 전체 폼 수정에서 알림을 끄면 이전 알림 선택 필드를 함께 제거합니다.
-  if ("repeat" in schedule && schedule.notificationEnabled !== true) {
+  if (isFullFormUpdate && normalizedUpdate.notificationEnabled !== true) {
     updateData.notificationEnabled = deleteField();
     updateData.notificationMinutesBefore = deleteField();
   }

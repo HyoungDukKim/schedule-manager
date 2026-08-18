@@ -3,8 +3,10 @@ import type { ChangeEvent } from "react";
 import type { BackupImportPreview } from "../../types/backup";
 import type { Schedule, ScheduleData } from "../../types/schedule";
 import {
+  BackupFileValidationError,
   exportSchedulesToCsv,
   exportSchedulesToXlsx,
+  getBackupFileValidationError,
   parseScheduleBackup,
 } from "../../utils/backupUtils";
 import "../../styles/backup.css";
@@ -14,9 +16,6 @@ type Props = {
   schedules: Schedule[];
   onImport: (schedules: ScheduleData[]) => Promise<boolean>;
 };
-
-// 큰 파일 파싱으로 모바일 브라우저가 멈추지 않도록 백업 파일 크기를 제한합니다.
-const MAX_BACKUP_FILE_SIZE = 5 * 1024 * 1024;
 
 function BackupRestore({ schedules, onImport }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,17 +69,10 @@ function BackupRestore({ schedules, onImport }: Props) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const extension = file.name.split(".").pop()?.toLowerCase();
-    if (extension !== "csv" && extension !== "xlsx") {
+    const fileValidationError = getBackupFileValidationError(file);
+    if (fileValidationError) {
       setPreview(null);
-      setError("CSV 또는 XLSX 파일만 선택해 주세요.");
-      resetFile();
-      return;
-    }
-
-    if (file.size > MAX_BACKUP_FILE_SIZE) {
-      setPreview(null);
-      setError("백업 파일은 5MB 이하만 가져올 수 있습니다.");
+      setError(fileValidationError);
       resetFile();
       return;
     }
@@ -96,7 +88,11 @@ function BackupRestore({ schedules, onImport }: Props) {
       setPreview(result);
     } catch (parseError) {
       console.error("백업 파일을 분석하지 못했습니다.", parseError);
-      setError("파일을 읽을 수 없습니다. 올바른 CSV 또는 XLSX인지 확인해 주세요.");
+      setError(
+        parseError instanceof BackupFileValidationError
+          ? parseError.message
+          : "파일을 읽을 수 없습니다. 올바른 CSV 또는 XLSX인지 확인해 주세요.",
+      );
       resetFile();
     } finally {
       setIsParsing(false);

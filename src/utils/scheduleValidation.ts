@@ -2,6 +2,9 @@ import type { ScheduleFormValues } from "../types/schedule";
 import {
   validateAiScheduleDraft,
 } from "../../shared/aiScheduleValidation.js";
+import {
+  validateScheduleFormValues,
+} from "../../shared/scheduleContract.js";
 
 // 기존 클라이언트 import 경로의 호환성을 유지하면서 공용 검증 구현을 그대로 노출합니다.
 export {
@@ -13,6 +16,16 @@ export {
   validateAiScheduleDraft,
 } from "../../shared/aiScheduleValidation.js";
 export type { AiScheduleDraftValidationResult } from "../../shared/aiScheduleValidation.js";
+export {
+  scheduleDataSchema,
+  scheduleFormValuesSchema,
+  validateScheduleData,
+  validateScheduleFormValues,
+} from "../../shared/scheduleContract.js";
+export type {
+  ScheduleContractIssue,
+  ScheduleContractValidationResult,
+} from "../../shared/scheduleContract.js";
 
 export type AiDraftConversionResult =
   | { success: true; values: ScheduleFormValues }
@@ -38,22 +51,24 @@ export const convertAiDraftToScheduleFormValues = (
     return { success: false, errors };
   }
 
-  return {
-    success: true,
-    values: {
-      title: draft.title,
-      date: draft.date,
-      time: draft.time,
-      category: draft.category,
-      priority: draft.priority,
-      repeat: draft.repeat,
-      ...(draft.repeatEndDate ? { repeatEndDate: draft.repeatEndDate } : {}),
-      ...(draft.notificationEnabled && draft.notificationMinutesBefore !== null
-        ? {
-            notificationEnabled: true,
-            notificationMinutesBefore: draft.notificationMinutesBefore,
-          }
-        : {}),
-    },
-  };
+  const formValidation = validateScheduleFormValues({
+    title: draft.title,
+    date: draft.date,
+    time: draft.time,
+    category: draft.category,
+    priority: draft.priority,
+    repeat: draft.repeat,
+    ...(draft.repeatEndDate ? { repeatEndDate: draft.repeatEndDate } : {}),
+    ...(draft.notificationEnabled && draft.notificationMinutesBefore !== null
+      ? {
+          notificationEnabled: true,
+          notificationMinutesBefore: draft.notificationMinutesBefore,
+        }
+      : {}),
+  });
+  if (!formValidation.success) {
+    return { success: false, errors: formValidation.errors };
+  }
+
+  return { success: true, values: formValidation.data };
 };

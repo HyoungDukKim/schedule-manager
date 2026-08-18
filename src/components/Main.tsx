@@ -60,7 +60,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
   const [sortOption, setSortOption] = useState<ScheduleSortOption>("날짜 빠른순");
   const { theme, toggleTheme } = useTheme();
   const {
-    schedules, filteredSchedules, sortedSchedules, scheduleError,
+    schedules, filteredSchedules, sortedSchedules, scheduleError, scheduleWarning,
     editingSchedule, openEditSchedule, saveSchedule, cancelEditing,
     importSchedules, toggleSchedule, deleteSchedule,
   } = useSchedules(user.uid, searchText, categoryFilter, dateRangeFilter, sortOption);
@@ -156,6 +156,7 @@ function Main({ user, onSwitchAccount, onLogout }: Props) {
           </div>
 
           {scheduleError && <div className="data-error-notice" role="alert">{scheduleError}</div>}
+          {scheduleWarning && <div className="data-error-notice" role="status">{scheduleWarning}</div>}
 
           {showForm && (
             <ScheduleForm

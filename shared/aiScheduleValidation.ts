@@ -5,6 +5,11 @@ import {
   SCHEDULE_PRIORITIES,
   SCHEDULE_REPEATS,
 } from "./scheduleValues.js";
+import {
+  isScheduleNotificationMinutes,
+  isValidScheduleDate,
+  isValidScheduleTime,
+} from "./scheduleContract.js";
 
 export type AiScheduleDraft = {
   title: string | null;
@@ -35,28 +40,12 @@ export type AiScheduleRequest = {
   context: AiScheduleRequestContext;
 };
 
-const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-// UTC 생성자를 사용해 실행 서버의 시간대와 무관하게 실제 달력 날짜인지 확인합니다.
-export const isValidScheduleDate = (value: string) => {
-  if (!DATE_PATTERN.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
-  return (
-    parsed.getUTCFullYear() === year &&
-    parsed.getUTCMonth() === month - 1 &&
-    parsed.getUTCDate() === day
-  );
-};
-
-export const isValidScheduleTime = (value: string) => TIME_PATTERN.test(value);
-
-export const isScheduleNotificationMinutes = (
-  value: unknown,
-): value is (typeof SCHEDULE_NOTIFICATION_MINUTES)[number] =>
-  typeof value === "number" &&
-  SCHEDULE_NOTIFICATION_MINUTES.some((minutes) => minutes === value);
+// 기존 import 경로와 서버 API 호환을 위해 공통 Schedule 계약의 가드를 다시 노출합니다.
+export {
+  isScheduleNotificationMinutes,
+  isValidScheduleDate,
+  isValidScheduleTime,
+} from "./scheduleContract.js";
 
 const nullableDateSchema = z
   .string()

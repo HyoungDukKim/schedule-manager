@@ -18,6 +18,7 @@ import {
   SCHEDULE_REPEATS,
   SCHEDULE_NOTIFICATION_OPTIONS,
 } from "../../constants/schedule";
+import { validateScheduleFormValues } from "../../utils/scheduleValidation";
 
 // 반복 종료 방식을 화면에서 구분하기 위한 값입니다.
 type RepeatEndMode = "none" | "date";
@@ -101,6 +102,7 @@ function ScheduleForm({
 
   // 종료일 검증에 실패했을 때 사용자에게 보여줄 안내 문구입니다.
   const [repeatEndError, setRepeatEndError] = useState("");
+  const [formError, setFormError] = useState("");
 
   // 기존 문서에는 알림 필드가 없을 수 있으므로 기본값은 사용 안 함입니다.
   const [notificationEnabled, setNotificationEnabled] = useState(
@@ -121,44 +123,38 @@ function ScheduleForm({
     // 제목 앞뒤 공백을 제거합니다.
     const trimmedTitle = title.trim();
 
-    // 필수 입력값이 비어 있으면 저장하지 않습니다.
-    if (
-      trimmedTitle === "" ||
-      date === "" ||
-      time === ""
-    ) {
-      return;
-    }
-
     const usesRepeatEndDate =
       repeat !== "반복 안함" && repeatEndMode === "date";
 
-    // 종료일을 지정했다면 빈 값과 시작일보다 이전인 날짜를 저장하지 않습니다.
-    if (
-      usesRepeatEndDate &&
-      (repeatEndDate === "" || repeatEndDate < date)
-    ) {
-      setRepeatEndError("반복 종료일은 시작일과 같거나 이후여야 합니다.");
-      return;
-    }
-
-    setRepeatEndError("");
-
-    // 모든 입력값을 Main 컴포넌트로 전달합니다.
-    await onSave({
+    // UI에서 만든 값도 저장 직전에 공통 Schedule 계약을 통과시킵니다.
+    const validation = validateScheduleFormValues({
       title: trimmedTitle,
       date,
       time,
       category,
       priority,
       repeat,
-      // 종료 없음이거나 반복 안함이면 선택 필드를 Firestore에 보내지 않습니다.
       ...(usesRepeatEndDate ? { repeatEndDate } : {}),
-      // 알림을 사용하지 않으면 선택 필드를 저장하지 않아 기존 문서 구조를 유지합니다.
       ...(notificationEnabled
         ? { notificationEnabled: true, notificationMinutesBefore }
         : {}),
     });
+    if (!validation.success) {
+      const repeatIssue = validation.issues.find(
+        (issue) => issue.field === "repeatEndDate",
+      );
+      setRepeatEndError(repeatIssue?.message ?? "");
+      setFormError(
+        validation.issues.find((issue) => issue.field !== "repeatEndDate")?.message ?? "",
+      );
+      return;
+    }
+
+    setRepeatEndError("");
+    setFormError("");
+
+    // 모든 입력값을 Main 컴포넌트로 전달합니다.
+    await onSave(validation.data);
   };
 
   return (
@@ -184,6 +180,8 @@ function ScheduleForm({
           type="text"
           placeholder="일정 제목을 입력하세요."
           value={title}
+          maxLength={200}
+          required
           onChange={(event) =>
             setTitle(event.target.value)
           }
@@ -201,6 +199,7 @@ function ScheduleForm({
           id="schedule-date"
           type="date"
           value={date}
+          required
           onChange={(event) =>
             setDate(event.target.value)
           }
@@ -217,6 +216,7 @@ function ScheduleForm({
           id="schedule-time"
           type="time"
           value={time}
+          required
           onChange={(event) =>
             setTime(event.target.value)
           }
@@ -387,6 +387,12 @@ function ScheduleForm({
           </div>
         )}
       </fieldset>
+
+      {formError && (
+        <p className="form-error" role="alert">
+          {formError}
+        </p>
+      )}
 
       {/* 저장과 취소 버튼 */}
       <div className="button-group">

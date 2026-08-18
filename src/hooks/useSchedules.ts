@@ -38,6 +38,7 @@ export const useSchedules = (
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [scheduleWarning, setScheduleWarning] = useState<string | null>(null);
   const schedulesRef = useRef(schedules);
 
   useEffect(() => {
@@ -55,10 +56,18 @@ export const useSchedules = (
       schedulesRef.current = [];
       setEditingSchedule(null);
       setScheduleError(null);
+      setScheduleWarning(null);
 
       try {
-        const loadedSchedules = await getSchedules(userId);
-        if (isActive) setSchedules(loadedSchedules);
+        const result = await getSchedules(userId);
+        if (isActive) {
+          setSchedules(result.schedules);
+          setScheduleWarning(
+            result.invalidCount > 0
+              ? "일부 일정 데이터를 불러오지 못했습니다."
+              : null,
+          );
+        }
       } catch (error) {
         console.error("Firestore에서 일정 데이터를 불러오지 못했습니다.", error);
         if (isActive) setScheduleError(getScheduleErrorMessage());
@@ -186,6 +195,7 @@ export const useSchedules = (
     filteredSchedules,
     sortedSchedules,
     scheduleError,
+    scheduleWarning,
     editingSchedule,
     openEditSchedule,
     saveSchedule,

@@ -4,11 +4,7 @@ import type {
   BackupImportRow,
 } from "../types/backup";
 import type { Schedule, ScheduleData } from "../types/schedule";
-import {
-  isScheduleCategory,
-  isSchedulePriority,
-  isScheduleRepeat,
-} from "./scheduleUtils";
+import { validateScheduleData } from "../../shared/scheduleContract.js";
 
 // CSV는 다른 시스템에서도 다루기 쉽도록 영문 필드명을 사용합니다.
 const CSV_HEADERS = [
@@ -38,10 +34,65 @@ const EXCEL_HEADERS = [
   "알림시간(분전)",
 ] as const;
 
-const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+// 브라우저 메모리에서 처리하는 파일이므로 크기와 workbook 복잡도에 상한을 둡니다.
+export const MAX_BACKUP_FILE_SIZE = 5 * 1024 * 1024;
+export const MAX_BACKUP_SHEETS = 5;
+export const MAX_BACKUP_ROWS = 5_000;
+export const MAX_BACKUP_COLUMNS = 32;
+export const MAX_BACKUP_CELL_LENGTH = 1_000;
+
+const CSV_MIME_TYPES = new Set([
+  "text/csv",
+  "application/csv",
+  "text/plain",
+  "application/vnd.ms-excel",
+]);
+const XLSX_MIME_TYPES = new Set([
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/zip",
+  "application/octet-stream",
+]);
 
 type BackupRecord = Record<string, unknown>;
+
+// 파일 구조 문제는 행 데이터 오류와 구분하여 사용자에게 안전한 문구로 전달합니다.
+export class BackupFileValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BackupFileValidationError";
+  }
+}
+
+const getFileExtension = (fileName: string) =>
+  fileName.split(".").pop()?.toLowerCase() ?? "";
+
+// 파일 선택 UI를 우회해도 동일한 확장자·MIME·크기 검증이 적용되게 합니다.
+export const getBackupFileValidationError = (file: File) => {
+  const extension = getFileExtension(file.name);
+  if (extension !== "csv" && extension !== "xlsx") {
+    return "CSV 또는 XLSX 파일만 선택해 주세요.";
+  }
+  if (file.size > MAX_BACKUP_FILE_SIZE) {
+    return "백업 파일은 5MB 이하만 가져올 수 있습니다.";
+  }
+
+  // 일부 브라우저는 로컬 파일 MIME을 비워 전달하므로 빈 값은 허용합니다.
+  const mimeType = file.type.toLowerCase();
+  if (
+    mimeType &&
+    !(
+      extension === "csv"
+        ? CSV_MIME_TYPES.has(mimeType)
+        : XLSX_MIME_TYPES.has(mimeType)
+    )
+  ) {
+    return extension === "csv"
+      ? "CSV 파일 형식을 확인해 주세요."
+      : "XLSX 파일 형식을 확인해 주세요.";
+  }
+
+  return null;
+};
 
 // 파일 이름에 사용할 오늘 날짜를 로컬 시간 기준으로 만듭니다.
 const getBackupDate = () => {
@@ -158,18 +209,6 @@ const getField = (record: BackupRecord, english: string, korean: string) =>
 
 const getText = (value: unknown) => String(value ?? "").trim();
 
-// 문자열 모양뿐 아니라 실제 달력에 존재하는 날짜인지 확인합니다.
-const isValidDate = (value: string) => {
-  if (!DATE_PATTERN.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
-};
-
 const parseCompleted = (value: unknown) => {
   if (typeof value === "boolean") return value;
   const normalized = getText(value).toLowerCase();
@@ -203,58 +242,57 @@ const validateRecord = (
   );
   const notificationMinutes = Number(notificationMinutesText);
 
-  if (!title) return { rowNumber, reason: "제목이 비어 있습니다." };
-  if (title.length > 200) {
-    return { rowNumber, reason: "제목은 200자 이하여야 합니다." };
-  }
   if (completed === null) {
     return { rowNumber, reason: "완료 값은 true/false 또는 완료/미완료여야 합니다." };
-  }
-  if (!isValidDate(date)) return { rowNumber, reason: "날짜 형식 오류" };
-  if (!TIME_PATTERN.test(time)) return { rowNumber, reason: "시간 형식 오류" };
-  if (!isScheduleCategory(category)) {
-    return { rowNumber, reason: "알 수 없는 카테고리" };
-  }
-  if (!isSchedulePriority(priority)) {
-    return { rowNumber, reason: "알 수 없는 우선순위" };
-  }
-  if (!isScheduleRepeat(repeat)) {
-    return { rowNumber, reason: "알 수 없는 반복 방식" };
-  }
-  if (repeatEndDate && !isValidDate(repeatEndDate)) {
-    return { rowNumber, reason: "반복 종료일 형식 오류" };
-  }
-  if (repeatEndDate && repeatEndDate < date) {
-    return { rowNumber, reason: "반복 종료일이 시작일보다 빠릅니다." };
   }
   if (notificationEnabled === null) {
     return { rowNumber, reason: "알림 사용 값은 true 또는 false여야 합니다." };
   }
-  if (
-    notificationEnabled &&
-    (!notificationMinutesText || ![0, 5, 10, 30, 60].includes(notificationMinutes))
-  ) {
-    return { rowNumber, reason: "알림 시간은 0, 5, 10, 30, 60 중 하나여야 합니다." };
+
+  const candidate: Record<string, unknown> = {
+    title,
+    completed,
+    date,
+    time,
+    category,
+    priority,
+    repeat,
+    ...(repeatEndDate ? { repeatEndDate } : {}),
+    ...(notificationEnabled
+      ? {
+          notificationEnabled: true,
+          ...(notificationMinutesText ? { notificationMinutesBefore: notificationMinutes } : {}),
+        }
+      : notificationMinutesText
+        ? {
+            notificationEnabled: false,
+            notificationMinutesBefore: notificationMinutes,
+          }
+        : {}),
+  };
+  const validation = validateScheduleData(candidate);
+  if (!validation.success) {
+    const issue = validation.issues[0];
+    const reasonByField: Record<string, string> = {
+      title: issue.message,
+      date: "날짜 형식 오류",
+      time: "시간 형식 오류",
+      category: "알 수 없는 카테고리",
+      priority: "알 수 없는 우선순위",
+      repeat: "알 수 없는 반복 방식",
+      repeatEndDate: issue.message,
+      notificationEnabled: issue.message,
+      notificationMinutesBefore: issue.message,
+    };
+    return {
+      rowNumber,
+      reason: reasonByField[issue.field] ?? "일정 데이터 형식 오류",
+    };
   }
 
   return {
     rowNumber,
-    schedule: {
-      title,
-      completed,
-      date,
-      time,
-      category,
-      priority,
-      repeat,
-      ...(repeatEndDate ? { repeatEndDate } : {}),
-      ...(notificationEnabled
-        ? {
-            notificationEnabled: true,
-            notificationMinutesBefore: notificationMinutes as 0 | 5 | 10 | 30 | 60,
-          }
-        : {}),
-    },
+    schedule: validation.data,
   };
 };
 
@@ -267,6 +305,11 @@ export const parseScheduleBackup = async (
   file: File,
   existingSchedules: Schedule[],
 ): Promise<BackupImportPreview> => {
+  const fileValidationError = getBackupFileValidationError(file);
+  if (fileValidationError) {
+    throw new BackupFileValidationError(fileValidationError);
+  }
+
   if (file.size === 0) {
     return {
       fileName: file.name,
@@ -278,13 +321,89 @@ export const parseScheduleBackup = async (
   }
 
   const XLSX = await import("xlsx");
+  const fileBytes = await file.arrayBuffer();
+  const extension = getFileExtension(file.name);
+
+  if (extension === "xlsx") {
+    const signature = new Uint8Array(fileBytes, 0, Math.min(4, fileBytes.byteLength));
+    const hasZipSignature =
+      signature.length === 4 &&
+      signature[0] === 0x50 &&
+      signature[1] === 0x4b &&
+      signature[2] === 0x03 &&
+      signature[3] === 0x04;
+    if (!hasZipSignature) {
+      throw new BackupFileValidationError("손상되었거나 올바르지 않은 XLSX 파일입니다.");
+    }
+  }
+
+  // 먼저 시트 이름만 읽어 지나치게 복잡한 workbook을 전체 파싱하기 전에 차단합니다.
+  const workbookInfo = XLSX.read(fileBytes, {
+    type: "array",
+    bookSheets: true,
+  });
+  if (workbookInfo.SheetNames.length > MAX_BACKUP_SHEETS) {
+    throw new BackupFileValidationError(
+      `XLSX 파일은 시트를 ${MAX_BACKUP_SHEETS}개 이하로 구성해 주세요.`,
+    );
+  }
+
   // CSV의 YYYY-MM-DD 값을 Excel 날짜로 자동 변환하지 않고 원문 그대로 읽습니다.
-  const workbook = XLSX.read(await file.arrayBuffer(), {
+  // 수식은 계산하지 않으며, 아래 검사에서 수식·링크 셀 자체를 가져오기 거부합니다.
+  const workbook = XLSX.read(fileBytes, {
     type: "array",
     raw: true,
+    cellFormula: true,
+    cellHTML: false,
+    cellStyles: false,
+    bookDeps: false,
+    bookFiles: false,
+    bookVBA: false,
+    dense: false,
+    nodim: true,
+    sheetRows: MAX_BACKUP_ROWS + 2,
+    sheets: 0,
+    WTF: true,
   });
   const firstSheetName = workbook.SheetNames[0];
   const worksheet = firstSheetName ? workbook.Sheets[firstSheetName] : undefined;
+
+  if (worksheet) {
+    const reportedRange = worksheet["!fullref"] ?? worksheet["!ref"];
+    if (reportedRange) {
+      const range = XLSX.utils.decode_range(reportedRange);
+      if (range.e.r - range.s.r + 1 > MAX_BACKUP_ROWS + 1) {
+        throw new BackupFileValidationError(
+          `가져올 수 있는 일정은 최대 ${MAX_BACKUP_ROWS.toLocaleString("ko-KR")}개입니다.`,
+        );
+      }
+      if (range.e.c - range.s.c + 1 > MAX_BACKUP_COLUMNS) {
+        throw new BackupFileValidationError(
+          `XLSX 파일은 최대 ${MAX_BACKUP_COLUMNS}열까지만 사용할 수 있습니다.`,
+        );
+      }
+    }
+
+    for (const [address, cell] of Object.entries(worksheet)) {
+      if (address.startsWith("!")) continue;
+      const typedCell = cell as { f?: unknown; l?: unknown; v?: unknown };
+      if (typedCell.f !== undefined) {
+        throw new BackupFileValidationError("수식이 포함된 XLSX 파일은 가져올 수 없습니다.");
+      }
+      if (typedCell.l !== undefined) {
+        throw new BackupFileValidationError("링크가 포함된 XLSX 파일은 가져올 수 없습니다.");
+      }
+      if (
+        typeof typedCell.v === "string" &&
+        typedCell.v.length > MAX_BACKUP_CELL_LENGTH
+      ) {
+        throw new BackupFileValidationError(
+          `셀 하나의 내용은 ${MAX_BACKUP_CELL_LENGTH.toLocaleString("ko-KR")}자 이하여야 합니다.`,
+        );
+      }
+    }
+  }
+
   const records = worksheet
     ? XLSX.utils.sheet_to_json<BackupRecord>(worksheet, {
         defval: "",
@@ -292,6 +411,12 @@ export const parseScheduleBackup = async (
         blankrows: false,
       })
     : [];
+
+  if (records.length > MAX_BACKUP_ROWS) {
+    throw new BackupFileValidationError(
+      `가져올 수 있는 일정은 최대 ${MAX_BACKUP_ROWS.toLocaleString("ko-KR")}개입니다.`,
+    );
+  }
 
   const errors: BackupImportError[] = [];
   const validRows: BackupImportRow[] = [];
